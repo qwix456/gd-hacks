@@ -12,6 +12,7 @@ static struct
     bool verify_hack;
     //bool keymaster_bypass;
     bool slider_bypass;
+    bool no_wave_trail;
 } settings;
 
 void InitUI()
@@ -36,6 +37,8 @@ void RenderUI()
             hacks::unlock_all(settings.unlock_all);
         if (ImGui::Checkbox("Slider bypass", &settings.slider_bypass))
             hacks::slider_bypass(settings.slider_bypass);
+        if (ImGui::Checkbox("No wave trail", &settings.no_wave_trail))
+            hacks::no_wave_trail(settings.no_wave_trail);
         ImGui::End();
     }
 }

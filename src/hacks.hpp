@@ -70,4 +70,12 @@ namespace hacks
             writeBytes(base + 0x4CDD8, {0x76});
         }
     }
+
+    static void no_wave_trail(bool active)
+    {
+        if(active)
+            writeBytes(base + 0x221C29, {0xE9, 0xA7, 0x08, 0x00, 0x00, 0x90});
+        else
+            writeBytes(base + 0x221C29, {0xF, 0x84, 0xA6, 0x08, 0x00, 0x00});
+    }
 } // namespace name
