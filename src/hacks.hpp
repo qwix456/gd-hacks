@@ -51,11 +51,23 @@ namespace hacks
             writeBytes(base + 0x381BF5, {0x74});
     }
 
-    static void keymaster_bypass(bool active)
+    // static void keymaster_bypass(bool active)
+    // {
+    //     if(active)
+    //         writeBytes(base + 0x70CB5, {0x90, 0x90});
+    //     else
+    //         writeBytes(base + 0x70CB5, {0x74});
+    // }
+
+    static void slider_bypass(bool active)
     {
-        if(active)
-            writeBytes(base + 0x70CB5, {0x90, 0x90});
-        else
-            writeBytes(base + 0x70CB5, {0x74});
+        if(active) {
+            writeBytes(base + 0x4CDAA, {0xEB});
+            writeBytes(base + 0x4CDD8, {0xEB});
+        }
+        else{
+            writeBytes(base + 0x4CDAA, {0x76});
+            writeBytes(base + 0x4CDD8, {0x76});
+        }
     }
 } // namespace name
