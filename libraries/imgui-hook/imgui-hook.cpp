@@ -1,181 +1,122 @@
-#define WIN32_LEAN_AND_MEAN
-#define DEFAULT_KEY VK_RSHIFT
-
-#include <windows.h>
-#include <cocos2d.h>
+#include <functional>
 #include "imgui-hook.hpp"
+#include <backends/imgui_impl_win32.h>
+#include <backends/imgui_impl_opengl2.h>
 
-using namespace cocos2d;
+SwapBuffersType originalSwapBuffers = nullptr;
+WNDPROC originalWndProc = nullptr;
+HGLRC originalContext = 0, newContext = 0;
 
-int toggleKey = DEFAULT_KEY;
+bool isInitialized = false;
+std::function<void()> drawFunc = []() {};
+std::function<void()> toggleFunction = []() {};
+HWND hWnd;
 
-void _stub() {}
-std::function<void()> g_drawFunc = _stub;
-std::function<void()> g_toggleCallback = _stub;
-std::function<void()> g_initFunc = _stub;
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-void ImGuiHook::setRenderFunction(std::function<void()> func) {
-    g_drawFunc = func;
-}
-
-void ImGuiHook::setToggleCallback(std::function<void()> func) {
-    g_toggleCallback = func;
-}
-
-void ImGuiHook::setInitFunction(std::function<void()> func) {
-    g_initFunc = func;
-}
-
-void ImGuiHook::setToggleKey(int key){
-    toggleKey = key;
-}
-
-
-bool g_inited = false;
-
-void (__thiscall* CCEGLView_swapBuffers)(CCEGLView*);
-void __fastcall CCEGLView_swapBuffers_H(CCEGLView* self) {
-    auto window = self->getWindow();
-
-    if (!g_inited) {
-        g_inited = true;
+BOOL WINAPI HookedSwapBuffers(HDC hdc)
+{
+    if (!isInitialized)
+    {
+        originalContext = wglGetCurrentContext();
+        newContext = wglCreateContext(hdc);
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
-        ImGui::GetIO();
-        auto hwnd = WindowFromDC(*reinterpret_cast<HDC*>(reinterpret_cast<uintptr_t>(window) + 0x244));
-        ImGui_ImplWin32_Init(hwnd);
-        ImGui_ImplOpenGL3_Init();
-        g_initFunc();
+        ImGuiIO& io = ImGui::GetIO();
+        io.IniFilename = nullptr;
+     ///   ApplyColor();
+
+        hWnd = WindowFromDC(hdc);
+        originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);
+        SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)HookedWndProc);
+        ImGui_ImplWin32_Init(hWnd);
+        ImGui_ImplOpenGL2_Init();
+
+        isInitialized = true;
     }
 
-    ImGui_ImplOpenGL3_NewFrame();
+    wglMakeCurrent(hdc, newContext);
+
+    ImGui_ImplOpenGL2_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    g_drawFunc();
+    drawFunc();
 
-    ImGui::EndFrame();
     ImGui::Render();
+    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    
     glFlush();
 
-    CCEGLView_swapBuffers(self);
+    wglMakeCurrent(hdc, originalContext);
+
+    return originalSwapBuffers(hdc);
 }
 
-// why is this an extern
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-void (__thiscall* CCEGLView_pollEvents)(CCEGLView*);
-void __fastcall CCEGLView_pollEvents_H(CCEGLView* self) {
-    auto& io = ImGui::GetIO();
-
-    bool blockInput = false;
-    MSG msg;
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-        TranslateMessage(&msg);
-
-        if (io.WantCaptureMouse) {
-            switch (msg.message) {
-                case WM_LBUTTONDBLCLK:
-                case WM_LBUTTONDOWN:
-                case WM_LBUTTONUP:
-                case WM_MBUTTONDBLCLK:
-                case WM_MBUTTONDOWN:
-                case WM_MBUTTONUP:
-                case WM_MOUSEACTIVATE:
-                case WM_MOUSEHOVER:
-                case WM_MOUSEHWHEEL:
-                case WM_MOUSELEAVE:
-                case WM_MOUSEMOVE:
-                case WM_MOUSEWHEEL:
-                case WM_NCLBUTTONDBLCLK:
-                case WM_NCLBUTTONDOWN:
-                case WM_NCLBUTTONUP:
-                case WM_NCMBUTTONDBLCLK:
-                case WM_NCMBUTTONDOWN:
-                case WM_NCMBUTTONUP:
-                case WM_NCMOUSEHOVER:
-                case WM_NCMOUSELEAVE:
-                case WM_NCMOUSEMOVE:
-                case WM_NCRBUTTONDBLCLK:
-                case WM_NCRBUTTONDOWN:
-                case WM_NCRBUTTONUP:
-                case WM_NCXBUTTONDBLCLK:
-                case WM_NCXBUTTONDOWN:
-                case WM_NCXBUTTONUP:
-                case WM_RBUTTONDBLCLK:
-                case WM_RBUTTONDOWN:
-                case WM_RBUTTONUP:
-                case WM_XBUTTONDBLCLK:
-                case WM_XBUTTONDOWN:
-                case WM_XBUTTONUP:
-                    blockInput = true;
-            }
-        }
-
-        if (io.WantCaptureKeyboard) {
-            switch (msg.message) {
-                case WM_HOTKEY:
-                case WM_KEYDOWN:
-                case WM_KEYUP:
-                case WM_KILLFOCUS:
-                case WM_SETFOCUS:
-                case WM_SYSKEYDOWN:
-                case WM_SYSKEYUP:
-                    blockInput = true;
-            }
-        } else if (GetAsyncKeyState(toggleKey) & 1) {
-            g_toggleCallback();
-        }
-
-        if (!blockInput)
-            DispatchMessage(&msg);
-
-        ImGui_ImplWin32_WndProcHandler(msg.hwnd, msg.message, msg.wParam, msg.lParam);
-    }
-
-    CCEGLView_pollEvents(self);
-}
-
-void (__thiscall* CCEGLView_toggleFullScreen)(cocos2d::CCEGLView*, bool);
-void __fastcall CCEGLView_toggleFullScreen_H(cocos2d::CCEGLView* self, void*, bool toggle) {
-    ImGui_ImplOpenGL3_Shutdown();
+void ImGuiHook::Unload()
+{
+    ImGui_ImplOpenGL2_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+    SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)originalWndProc);
+    isInitialized = false;
+}
 
+LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
+
+    if (msg == WM_KEYDOWN && wParam == VK_TAB && !ImGui::GetIO().WantCaptureKeyboard)
+    {
+        toggleFunction();
+    }
+
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        if (msg == WM_MOUSEMOVE || msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP || msg == WM_MOUSEWHEEL)
+            return 0;
+    }
+
+    if (ImGui::GetIO().WantCaptureKeyboard)
+    {
+        if (msg == WM_KEYDOWN || msg == WM_KEYUP || msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP ||
+            msg == WM_HOTKEY || msg == WM_KILLFOCUS || msg == WM_SETFOCUS)
+            return 0;
+    }
+
+    return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
+}
+
+void(__thiscall* CCEGLView_toggleFullScreen)(void*, bool);
+void __fastcall CCEGLView_toggleFullScreen_H(void* self, void*, bool toggle)
+{
+    ImGuiHook::Unload();
     CCEGLView_toggleFullScreen(self, toggle);
-
-    g_inited = false;
 }
 
-void (__thiscall* AppDelegate_applicationWillEnterForeground)(void*);
-void __fastcall AppDelegate_applicationWillEnterForeground_H(void* self) {
-    AppDelegate_applicationWillEnterForeground(self);
-    ImGui::GetIO().ClearInputKeys();
-}
 
-void ImGuiHook::setupHooks(std::function<void(void*, void*, void**)> hookFunc) {
-    auto cocosBase = GetModuleHandleA("libcocos2d.dll");
+void ImGuiHook::Load(std::function<void(void*, void*, void**)> hookFunc)
+{
     hookFunc(
-        GetProcAddress(cocosBase, "?swapBuffers@CCEGLView@cocos2d@@UAEXXZ"),
-        CCEGLView_swapBuffers_H,
-        reinterpret_cast<void**>(&CCEGLView_swapBuffers)
+        GetProcAddress(LoadLibraryA("opengl32.dll"), "wglSwapBuffers"),
+        HookedSwapBuffers,
+        reinterpret_cast<void**>(&originalSwapBuffers)
     );
+
     hookFunc(
-        GetProcAddress(cocosBase, "?pollEvents@CCEGLView@cocos2d@@QAEXXZ"),
-        CCEGLView_pollEvents_H,
-        reinterpret_cast<void**>(&CCEGLView_pollEvents)
-    );
-    hookFunc(
-        GetProcAddress(cocosBase, "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N@Z"),
+        GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N@Z"),
         CCEGLView_toggleFullScreen_H,
         reinterpret_cast<void**>(&CCEGLView_toggleFullScreen)
     );
-    hookFunc(
-        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandleA(0)) + 0x5A550),
-        reinterpret_cast<void*>(&AppDelegate_applicationWillEnterForeground_H),
-        reinterpret_cast<void**>(&AppDelegate_applicationWillEnterForeground)
-    );
+}
+
+void ImGuiHook::setRenderFunction(std::function<void()> func)
+{
+    drawFunc = func;
+}
+
+void ImGuiHook::setToggleFunction(std::function<void()> func)
+{
+    toggleFunction = func;
 }

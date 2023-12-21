@@ -18,38 +18,48 @@ void RenderUI()
         {
             if (ImGui::BeginTabItem("Global"))
             {
-                if (ImGui::Checkbox("Noclip", &hacks_.noclip))
+                if (ImGui::Checkbox("NoClip", &hacks_.noclip))
                     hacks::noclip(hacks_.noclip);
                 if (ImGui::Checkbox("Practice Music Hack", &hacks_.practice_music_hack))
                     hacks::practice(hacks_.practice_music_hack);
-                if (ImGui::Checkbox("Copy hack", &hacks_.copy_hack))
+                if (ImGui::Checkbox("Copy Hack", &hacks_.copy_hack))
                     hacks::copy_hack(hacks_.copy_hack);
-                if (ImGui::Checkbox("Verify hack", &hacks_.verify_hack))
+                if (ImGui::Checkbox("Verify Hack", &hacks_.verify_hack))
                     hacks::verify_hack(hacks_.verify_hack);
-                if (ImGui::Checkbox("Unlock all", &hacks_.unlock_all))
+                if (ImGui::Checkbox("Unlock All", &hacks_.unlock_all))
                     hacks::unlock_all(hacks_.unlock_all);
-                if (ImGui::Checkbox("No wave trail", &hacks_.no_wave_trail))
+                if (ImGui::Checkbox("No Wave Trail", &hacks_.no_wave_trail))
                     hacks::no_wave_trail(hacks_.no_wave_trail);
+                if (ImGui::Checkbox("No Death Texture", &hacks_.no_death_texture))
+                    hacks::no_death_texture(hacks_.no_death_texture);
+                if (ImGui::Checkbox("No Death Effect", &hacks_.no_death_parcticle))
+                    hacks::no_death_parcticle(hacks_.no_death_parcticle);
+
+                ImGui::PushItemWidth(150);
+                ImGui::DragFloat("Speed", &speed, 0.01f, 0, FLT_MAX, "%.2f");
+                ImGui::PopItemWidth();
 
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Bypass"))
             {
-                if (ImGui::Checkbox("Slider bypass", &hacks_.slider_bypass))
+                if (ImGui::Checkbox("Slider Bypass", &hacks_.slider_bypass))
                     hacks::slider_bypass(hacks_.slider_bypass);
-                if (ImGui::Checkbox("Buy item bypass", &hacks_.buy_item_bypass))
+                if (ImGui::Checkbox("Buy Item Bypass", &hacks_.buy_item_bypass))
                     hacks::buy_item_bypass(hacks_.buy_item_bypass);
-                if (ImGui::Checkbox("Keymaster bypass", &hacks_.keymaster_bypass))
+                if (ImGui::Checkbox("Keymaster Bypass", &hacks_.keymaster_bypass))
                     hacks::keymaster_bypass(hacks_.keymaster_bypass);
-                if (ImGui::Checkbox("Scratch bypass", &hacks_.scratch_bypass))
+                if (ImGui::Checkbox("Scratch Bypass", &hacks_.scratch_bypass))
                     hacks::scratch_bypass(hacks_.scratch_bypass);
-                if (ImGui::Checkbox("Potbor bypass", &hacks_.potbor_bypass))
+                if (ImGui::Checkbox("Potbor Bypass", &hacks_.potbor_bypass))
                     hacks::potbor_bypass(hacks_.potbor_bypass);
                 if (ImGui::Checkbox("The Mechanic Bypass", &hacks_.the_mechanic_bypass))
                     hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
                 if (ImGui::Checkbox("Diamond Shopkeeper Bypass", &hacks_.diamond_shopkeeper_bypass))
                     hacks::diamond_shopkeeper(hacks_.diamond_shopkeeper_bypass);
+                if (ImGui::Checkbox("Treasure Room Bypass", &hacks_.treasure_room_bypass))
+                    hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
 
                 ImGui::EndTabItem();
             }
@@ -61,22 +71,21 @@ void RenderUI()
     }
 }
 
-DWORD MainThread(LPVOID lpParam)
+DWORD WINAPI MainThread(LPVOID lpParam)
 {
     MH_Initialize();
 
-    ImGuiHook::setInitFunction(InitUI);
     ImGuiHook::setRenderFunction(RenderUI);
 
-    ImGuiHook::setToggleCallback([]() {
+    ImGuiHook::setToggleFunction([]() {
         g_visible = !g_visible;
     });
 
-    ImGuiHook::setToggleKey(VK_TAB);
-
-    ImGuiHook::setupHooks([](void* target, void* hook, void** trampoline) {
+    ImGuiHook::Load([](void* target, void* hook, void** trampoline) {
         MH_CreateHook(target, hook, trampoline);
     });
+
+    MH_CreateHook(GetProcAddress(hacks::cocos_base, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void**)&CCScheduler_update);
 
     MH_EnableHook(MH_ALL_HOOKS);
 

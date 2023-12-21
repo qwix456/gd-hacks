@@ -17,7 +17,12 @@ struct settings
     bool potbor_bypass;
     bool the_mechanic_bypass;
     bool diamond_shopkeeper_bypass;
+    bool treasure_room_bypass;
+    bool no_death_texture;
+    bool no_death_parcticle;
 };
+
+float speed = 1.0f;
 
 inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
@@ -29,10 +34,17 @@ inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
         nullptr);
 }
 
+void(__thiscall* CCScheduler_update)(void*, float);
+void __fastcall CCScheduler_update_H(void* self, int, float dt)
+{
+    dt *= speed;
+    CCScheduler_update(self, dt);
+}
+
 namespace hacks
 {
-    inline uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
-    inline HMODULE cocos_base = GetModuleHandleA("libcocos2d.dll");
+    inline auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+    inline auto cocos_base = GetModuleHandleA("libcocos2d.dll");
 
     static void noclip(bool active)
     {
@@ -157,5 +169,29 @@ namespace hacks
             writeBytes(base + 0x2F7156, { 0x74 });
         else
             writeBytes(base + 0x2F7156, { 0x75 });
+    }
+
+    static void no_death_texture(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2BA6AF, { 0xE9, 0xB8, 0x02, 0x00, 0x00, 0x90 });
+        else
+            writeBytes(base + 0x2BA6AF, { 0x0F, 0x85, 0xB7, 0x02, 0x00, 0x00 });
+    }
+
+    static void no_death_parcticle(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2CC3AE, { 0xEB });
+        else
+            writeBytes(base + 0x2CC3AE, { 0x75 });
+    }
+
+    static void treasure_room_bypass(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2F742A, { 0xE9, 0x5D, 0x01, 0x00, 0x00, 0x90 });
+        else
+            writeBytes(base + 0x2F742A, { 0x0F, 0x8D, 0x5C, 0x01, 0x00, 0x00 });
     }
 } // namespace name

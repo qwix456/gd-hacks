@@ -1,39 +1,21 @@
 cmake_minimum_required(VERSION 3.0.0)
 set(CMAKE_CXX_STANDARD 17)
-project(gd-hacks VERSION 0.1.0)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-file(GLOB_RECURSE SOURCES
-	src/*.cpp
-    src/*.hpp
-)
+set(PROJECT gd-hacks)
+project(${PROJECT})
 
-if(${CMAKE_SYSTEM} MATCHES "Darwin" OR ${CMAKE_SYSTEM} MATCHES "Linux")
-	message(FATAL_ERROR "Unsupported operating system. Only Windows is supported right now.")
-endif()
+file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+add_library(${PROJECT} SHARED ${SOURCE_FILES})
 
-
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
-
-target_include_directories( ${PROJECT_NAME} PRIVATE
-    libraries/imgui
-    libraries/imgui-hook
-    libraries/minhook/include
-	libraries/cocos-headers/cocos2dx/
-	libraries/cocos-headers/cocos2dx/include
-	libraries/cocos-headers/cocos2dx/kazmath/include
-	libraries/cocos-headers/cocos2dx/platform/win32
-	libraries/cocos-headers/cocos2dx/platform/third_party/win32
-	libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
+target_include_directories(${PROJECT} PRIVATE
+  libraries/minhook/include
+  libraries/imgui-hook
+  libraries/imgui-hook/imgui
+  libraries
 )
 
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
-add_subdirectory(libraries/cocos-headers)
-
-target_link_libraries(${PROJECT_NAME}
-	${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/libcocos2d.lib
-	imgui-hook
-	minhook
-	opengl32
-	cocos2d
-)
+target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
