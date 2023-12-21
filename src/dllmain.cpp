@@ -28,6 +28,8 @@ void RenderUI()
                     hacks::verify_hack(hacks_.verify_hack);
                 if (ImGui::Checkbox("Unlock All", &hacks_.unlock_all))
                     hacks::unlock_all(hacks_.unlock_all);
+                if (ImGui::Checkbox("Unlock All Levels", &hacks_.unlock_all_levels))
+                    hacks::unlock_all_levels(hacks_.unlock_all_levels);
                 if (ImGui::Checkbox("No Wave Trail", &hacks_.no_wave_trail))
                     hacks::no_wave_trail(hacks_.no_wave_trail);
                 if (ImGui::Checkbox("No Death Texture", &hacks_.no_death_texture))

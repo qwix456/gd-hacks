@@ -7,6 +7,7 @@ struct settings
     bool noclip;
     bool practice_music_hack;
     bool unlock_all;
+    bool unlock_all_levels;
     bool copy_hack;
     bool verify_hack;
     bool no_wave_trail;
@@ -75,6 +76,14 @@ namespace hacks
             writeBytes(base + 0x1EE4E4, {0x75});
             writeBytes(base + 0x5FC2E, {0x74});
         }
+    }
+
+    static void unlock_all_levels(bool active)
+    {
+        if(active)
+            writeBytes(base + 0x2676A4, {0xEB});
+        else
+            writeBytes(base + 0x2676A4, {0x7E});
     }
 
     static void copy_hack(bool active)
