@@ -1,8 +1,34 @@
-#include "utils.hpp"
+#include <vector>
+#include <string>
+#include <windows.h>
+
+struct settings
+{
+    bool noclip;
+    bool practice_music_hack;
+    bool unlock_all;
+    bool copy_hack;
+    bool verify_hack;
+    bool no_wave_trail;
+    bool slider_bypass;
+    bool keymaster_bypass;
+    bool buy_item_bypass;
+};
+
+inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
+{
+        return WriteProcessMemory(
+        GetCurrentProcess(),
+        reinterpret_cast<LPVOID>(address),
+        bytes.data(),
+        bytes.size(),
+        nullptr);
+}
 
 namespace hacks
 {
-    auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+    inline uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+    inline HMODULE cocos_base = GetModuleHandleA("libcocos2d.dll");
 
     static void noclip(bool active)
     {
@@ -51,13 +77,13 @@ namespace hacks
             writeBytes(base + 0x381BF5, {0x74});
     }
 
-    // static void keymaster_bypass(bool active)
-    // {
-    //     if(active)
-    //         writeBytes(base + 0x70CB5, {0x90, 0x90});
-    //     else
-    //         writeBytes(base + 0x70CB5, {0x74});
-    // }
+    static void keymaster_bypass(bool active)
+    {
+        if(active)
+           writeBytes(base + 0x70CB5, {0x90, 0x90});
+        else
+           writeBytes(base + 0x70CB5, {0x74});
+    }
 
     static void slider_bypass(bool active)
     {
@@ -77,5 +103,21 @@ namespace hacks
             writeBytes(base + 0x221C29, {0xE9, 0xA7, 0x08, 0x00, 0x00, 0x90});
         else
             writeBytes(base + 0x221C29, {0xF, 0x84, 0xA6, 0x08, 0x00, 0x00});
+    }
+
+    static void buy_item_bypass(bool active) // idk what name
+    {
+        if (active) 
+        {
+            writeBytes(base + 0x216670, { 0x90, 0x90 });
+            writeBytes(base + 0x216666, { 0xEB });
+            writeBytes(base + 0x218AF4, { 0x90, 0x90 });
+        }
+        else
+        {
+            writeBytes(base + 0x216670, { 0xEB });
+            writeBytes(base + 0x216666, { 0x74 });
+            writeBytes(base + 0x218AF4, { 0x74, 0x14 });
+        }
     }
 } // namespace name
