@@ -13,6 +13,10 @@ struct settings
     bool slider_bypass;
     bool keymaster_bypass;
     bool buy_item_bypass;
+    bool scratch_bypass;
+    bool potbor_bypass;
+    bool the_mechanic_bypass;
+    bool diamond_shopkeeper_bypass;
 };
 
 inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
@@ -112,12 +116,46 @@ namespace hacks
             writeBytes(base + 0x216670, { 0x90, 0x90 });
             writeBytes(base + 0x216666, { 0xEB });
             writeBytes(base + 0x218AF4, { 0x90, 0x90 });
+            writeBytes(base + 0x216670, { 0x90, 0x90 });
         }
         else
         {
             writeBytes(base + 0x216670, { 0xEB });
             writeBytes(base + 0x216666, { 0x74 });
             writeBytes(base + 0x218AF4, { 0x74, 0x14 });
+            writeBytes(base + 0x216670, { 0xEB, 0x1D });
         }
+    }
+
+    static void scratch_bypass(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2F70EA, { 0xEB });
+        else
+            writeBytes(base + 0x2F70EA, { 0x75 });
+    }
+
+    static void potbor_bypass(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2F710E, { 0x74 });
+        else
+            writeBytes(base + 0x2F710E, { 0x75 });
+    }
+
+    static void the_mechanic_bypass(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2F7132, { 0x74 });
+        else
+            writeBytes(base + 0x2F7132, { 0x75 });
+    }
+
+    static void diamond_shopkeeper(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2F7156, { 0x74 });
+        else
+            writeBytes(base + 0x2F7156, { 0x75 });
     }
 } // namespace name

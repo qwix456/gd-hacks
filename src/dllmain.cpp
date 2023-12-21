@@ -32,6 +32,14 @@ void RenderUI()
             hacks::buy_item_bypass(hacks_.buy_item_bypass);
         if (ImGui::Checkbox("Keymaster bypass", &hacks_.keymaster_bypass))
             hacks::keymaster_bypass(hacks_.keymaster_bypass);
+        if (ImGui::Checkbox("Scratch bypass", &hacks_.scratch_bypass))
+            hacks::scratch_bypass(hacks_.scratch_bypass);
+        if (ImGui::Checkbox("Potbor bypass", &hacks_.potbor_bypass))
+            hacks::potbor_bypass(hacks_.potbor_bypass);
+        if (ImGui::Checkbox("The Mechanic Bypass", &hacks_.the_mechanic_bypass))
+            hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
+        if (ImGui::Checkbox("Diamond Shopkeeper Bypass", &hacks_.diamond_shopkeeper_bypass))
+            hacks::diamond_shopkeeper(hacks_.diamond_shopkeeper_bypass);
         ImGui::End();
     }
 }
