@@ -24,8 +24,6 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
 	libraries/cocos-headers/cocos2dx/platform/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
-	libraries/gd.h
-	libraries/gd.h/include/
 )
 
 add_subdirectory(libraries/minhook)
