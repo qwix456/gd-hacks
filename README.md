@@ -10,6 +10,4 @@ Mod Menu for Geometry Dash 2.2
 # How to install and Inject
 
 1. [Download the latest version of gd-hacks](https://github.com/Skyue1/gd-hacks/releases)
-2. Download any injector, but i recommend Process Hacker (also if DLL did not get injected the first time try again)
-3. Select the GeometryDash.exe process and inject the DLL
-4. After everything has been successfully injected you can open the menu by pressing the TAB button.
+2. And move files gd-hacks.dll and libExtensions.dll to the folder with GeometryDash, after you do everything run the game and press TAB.
