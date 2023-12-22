@@ -4,16 +4,11 @@
 static bool g_visible;
 struct settings hacks_;
 
-void InitUI()
-{
-    ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Arial.ttf", 14.f);
-}
-
 void RenderUI()
 {
     if (g_visible)
     {
-        ImGui::Begin("ModMenu");
+        ImGui::Begin("ModMenu", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::BeginTabBar("##tabbar"))
         {
             if (ImGui::BeginTabItem("Global"))
@@ -56,6 +51,10 @@ void RenderUI()
                     hacks::buy_item_bypass(hacks_.buy_item_bypass);
                 if (ImGui::Checkbox("Keymaster Bypass", &hacks_.keymaster_bypass))
                     hacks::keymaster_bypass(hacks_.keymaster_bypass);
+                if (ImGui::Checkbox("Vault of Secrets Bypass", &hacks_.vault_of_secrets_bypass))
+                    hacks::vault_of_secrets_bypass(hacks_.vault_of_secrets_bypass);
+                if (ImGui::Checkbox("Vault of Secrets Key Bypass", &hacks_.vault_of_secrets_key_bypass))
+                    hacks::vault_of_secrets_key_bypass(hacks_.vault_of_secrets_key_bypass);
                 if (ImGui::Checkbox("Scratch Bypass", &hacks_.scratch_bypass))
                     hacks::scratch_bypass(hacks_.scratch_bypass);
                 if (ImGui::Checkbox("Potbor Bypass", &hacks_.potbor_bypass))

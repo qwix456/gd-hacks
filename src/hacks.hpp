@@ -13,6 +13,8 @@ struct settings
     bool no_wave_trail;
     bool slider_bypass;
     bool keymaster_bypass;
+    bool vault_of_secrets_bypass;
+    bool vault_of_secrets_key_bypass;
     bool buy_item_bypass;
     bool scratch_bypass;
     bool potbor_bypass;
@@ -113,15 +115,45 @@ namespace hacks
            writeBytes(base + 0x70CB5, {0x74});
     }
 
+    static void vault_of_secrets_bypass(bool active)
+    {
+        if (active) {
+            writeBytes(base + 0x70991, { 0x75 });
+            writeBytes(base + 0x2FF97C, { 0x75 });
+        }
+        else {
+            writeBytes(base + 0x70991, { 0x74 });
+            writeBytes(base + 0x2FF97C, { 0x74 });
+        }
+    }
+
+    static void vault_of_secrets_key_bypass(bool active)
+    {
+        if (active)
+        {
+            writeBytes(base + 0x30515F, { 0x0F, 0x84 });
+            writeBytes(base + 0x305307, { 0x0F, 0x84 });
+            writeBytes(base + 0x3054B3, { 0x0F, 0x84 });
+        }
+        else
+        {
+            writeBytes(base + 0x30515F, { 0x0F, 0x85 });
+            writeBytes(base + 0x305307, { 0x0F, 0x85 });
+            writeBytes(base + 0x3054B3, { 0x0F, 0x85 });
+        }
+    }
+
     static void slider_bypass(bool active)
     {
         if(active) {
             writeBytes(base + 0x4CDAA, {0xEB});
             writeBytes(base + 0x4CDD8, {0xEB});
+            writeBytes(base + 0xDE538, { 0xEB });
         }
         else{
             writeBytes(base + 0x4CDAA, {0x76});
             writeBytes(base + 0x4CDD8, {0x76});
+            writeBytes(base + 0xDE538, { 0x75 });
         }
     }
 

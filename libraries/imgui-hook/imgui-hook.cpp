@@ -15,6 +15,21 @@ HWND hWnd;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+
+void ApplyColors()
+{
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Arial.ttf", 13.f);
+    auto& style = ImGui::GetStyle();
+    style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
+    auto colors = style.Colors;
+    colors[ImGuiCol_FrameBg] = ImVec4(0.31f, 0.31f, 0.31f, 0.54f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.59f, 0.59f, 0.59f, 0.40f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.61f, 0.61f, 0.61f, 0.67f);
+    colors[ImGuiCol_TitleBg] = colors[ImGuiCol_TitleBgActive] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);
+    colors[ImGuiCol_CheckMark] = ImVec4(0.89f, 0.89f, 0.89f, 1.00f);
+    colors[ImGuiCol_TextSelectedBg] = ImVec4(0.71f, 0.71f, 0.71f, 0.35f);
+}
+
 BOOL WINAPI HookedSwapBuffers(HDC hdc)
 {
     if (!isInitialized)
@@ -25,7 +40,7 @@ BOOL WINAPI HookedSwapBuffers(HDC hdc)
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
         io.IniFilename = nullptr;
-     ///   ApplyColor();
+        ApplyColors();
 
         hWnd = WindowFromDC(hdc);
         originalWndProc = (WNDPROC)GetWindowLongPtr(hWnd, GWLP_WNDPROC);

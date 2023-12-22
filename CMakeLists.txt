@@ -13,7 +13,7 @@ target_include_directories(${PROJECT} PRIVATE
   libraries/minhook/include
   libraries/imgui-hook
   libraries/imgui-hook/imgui
-  libraries
+  libraries/cocos2d
 )
 
 add_subdirectory(libraries/minhook)
