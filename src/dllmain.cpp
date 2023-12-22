@@ -36,6 +36,10 @@ void RenderUI()
                     hacks::no_death_texture(hacks_.no_death_texture);
                 if (ImGui::Checkbox("No Death Effect", &hacks_.no_death_parcticle))
                     hacks::no_death_parcticle(hacks_.no_death_parcticle);
+                if (ImGui::Checkbox("Ignore Pause ESC", &hacks_.ignore_pause_esc))
+                    hacks::ignore_pause_esc(hacks_.ignore_pause_esc);
+                if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
+                    hacks::ignore_esc(hacks_.ignore_esc);
 
                 ImGui::PushItemWidth(150);
                 ImGui::DragFloat("Speed", &speed, 0.01f, 0, FLT_MAX, "%.2f");
@@ -62,6 +66,8 @@ void RenderUI()
                     hacks::diamond_shopkeeper(hacks_.diamond_shopkeeper_bypass);
                 if (ImGui::Checkbox("Treasure Room Bypass", &hacks_.treasure_room_bypass))
                     hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
+                if (ImGui::Checkbox("Custom Object Bypass", &hacks_.custom_object_bypass))
+                    hacks::custom_object_bypass(hacks_.custom_object_bypass);
 
                 ImGui::EndTabItem();
             }

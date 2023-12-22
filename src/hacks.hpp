@@ -21,6 +21,9 @@ struct settings
     bool treasure_room_bypass;
     bool no_death_texture;
     bool no_death_parcticle;
+    bool custom_object_bypass;
+    bool ignore_esc;
+    bool ignore_pause_esc;
 };
 
 float speed = 1.0f;
@@ -202,5 +205,35 @@ namespace hacks
             writeBytes(base + 0x2F742A, { 0xE9, 0x5D, 0x01, 0x00, 0x00, 0x90 });
         else
             writeBytes(base + 0x2F742A, { 0x0F, 0x8D, 0x5C, 0x01, 0x00, 0x00 });
+    }
+
+    static void ignore_esc(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2B4FAE, { 0xEB });
+        else
+            writeBytes(base + 0x2B4FAE, { 0x7F });
+    }
+
+    static void ignore_pause_esc(bool active)
+    {
+        if (active)
+            writeBytes(base + 0x2E4FDF, { 0xE9, 0x5A, 0x01, 0x00, 0x00, 0x90 });
+        else
+            writeBytes(base + 0x2E4FDF, { 0x0F, 0x85, 0x59, 0x01, 0x00, 0x00 });
+    }
+
+    static void custom_object_bypass(bool active)
+    {
+        if (active)
+        {
+            writeBytes(base + 0xA76A4, { 0xE9, 0x83, 0x00 });
+            writeBytes(base + 0xA7854, { 0x90, 0x90 });
+        }
+        else
+        {
+            writeBytes(base + 0xA76A4, { 0x0F, 0x86, 0x82 });
+            writeBytes(base + 0xA7854, { 0x77, 0x3A });
+        }
     }
 } // namespace name
