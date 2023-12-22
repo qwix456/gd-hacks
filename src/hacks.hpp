@@ -10,6 +10,7 @@ struct settings
     bool unlock_all_levels;
     bool copy_hack;
     bool verify_hack;
+    bool level_edit;
     bool no_wave_trail;
     bool slider_bypass;
     bool keymaster_bypass;
@@ -26,9 +27,10 @@ struct settings
     bool custom_object_bypass;
     bool ignore_esc;
     bool ignore_pause_esc;
+    bool audio_speedhack;
 };
 
-float speed = 1.0f;
+float speed = 2.0f;
 
 inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
@@ -105,6 +107,28 @@ namespace hacks
             writeBytes(base + 0x381BF5, {0xEB});
         else
             writeBytes(base + 0x381BF5, {0x74});
+    }
+
+    static void level_edit(bool active)
+    {
+        if(active)
+        {
+            writeBytes(base + 0x2B3A3A, {0x0F, 0x84});
+            writeBytes(base + 0x2B3A85, {0xB9, 0x80, 0x4D});
+            writeBytes(base + 0x2B3A9D, {0x90, 0x90, 0x90});
+            writeBytes(base + 0x2B4D9F, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+            writeBytes(base + 0x2B4E15, {0x75});
+            writeBytes(base + 0x2D707D, {0xEB});
+        }
+        else
+        {
+            writeBytes(base + 0x2B3A3A, {0x0F, 0x85});
+            writeBytes(base + 0x2B3A85, {0xB9, 0x90, 0x4C});
+            writeBytes(base + 0x2B3A9D, {0x0F, 0x44, 0xCA});
+            writeBytes(base + 0x2B4D9F, {0x0F, 0x85, 0xBD, 0x00, 0x00, 0x00});
+            writeBytes(base + 0x2B4E15, {0x74});
+            writeBytes(base + 0x2D707D, {0x75});
+        }
     }
 
     static void keymaster_bypass(bool active)

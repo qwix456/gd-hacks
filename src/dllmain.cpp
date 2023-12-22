@@ -21,6 +21,8 @@ void RenderUI()
                     hacks::copy_hack(hacks_.copy_hack);
                 if (ImGui::Checkbox("Verify Hack", &hacks_.verify_hack))
                     hacks::verify_hack(hacks_.verify_hack);
+                if (ImGui::Checkbox("Level Edit", &hacks_.level_edit))
+                    hacks::level_edit(hacks_.level_edit);
                 if (ImGui::Checkbox("Unlock All", &hacks_.unlock_all))
                     hacks::unlock_all(hacks_.unlock_all);
                 if (ImGui::Checkbox("Unlock All Levels", &hacks_.unlock_all_levels))
@@ -35,9 +37,9 @@ void RenderUI()
                     hacks::ignore_pause_esc(hacks_.ignore_pause_esc);
                 if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
                     hacks::ignore_esc(hacks_.ignore_esc);
-
+                
                 ImGui::PushItemWidth(150);
-                ImGui::DragFloat("Speed", &speed, 0.01f, 0, FLT_MAX, "%.2f");
+                ImGui::DragFloat("##speedhack", &speed, 0.01f, 0, FLT_MAX, "Speed: %.2f");
                 ImGui::PopItemWidth();
 
                 ImGui::EndTabItem();
@@ -93,7 +95,6 @@ DWORD WINAPI MainThread(LPVOID lpParam)
     });
 
     MH_CreateHook(GetProcAddress(hacks::cocos_base, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void**)&CCScheduler_update);
-
     MH_EnableHook(MH_ALL_HOOKS);
 
     return S_OK;
