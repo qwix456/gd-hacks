@@ -64,7 +64,7 @@ void RenderUI()
                     hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
                 if (ImGui::Checkbox("Diamond Shopkeeper Bypass", &hacks_.diamond_shopkeeper_bypass))
                     hacks::diamond_shopkeeper(hacks_.diamond_shopkeeper_bypass);
-                if (ImGui::Checkbox("Treasure Room Bypass", &hacks_.treasure_room_bypass))
+                if (ImGui::Checkbox("Treasure Room Bypass (WIP)", &hacks_.treasure_room_bypass))
                     hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
                 if (ImGui::Checkbox("Custom Object Bypass", &hacks_.custom_object_bypass))
                     hacks::custom_object_bypass(hacks_.custom_object_bypass);
