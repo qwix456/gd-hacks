@@ -30,7 +30,7 @@ struct settings
     bool audio_speedhack;
 };
 
-float speed = 2.0f;
+float speed = 1.0f;
 
 inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {

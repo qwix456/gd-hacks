@@ -1,8 +1,13 @@
 #include "includes.hpp"
 #include "hacks.hpp"
 
-static bool g_visible;
+static bool g_visible = false;
 struct settings hacks_;
+
+__declspec(dllexport) void HACKS()
+{
+    return;
+}
 
 void RenderUI()
 {
