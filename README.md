@@ -2,10 +2,7 @@
 
 Mod Menu for Geometry Dash 2.2
 
-- Bypass functions
-- Player functions
-
-![20231222171847_1](https://github.com/Skyue1/gd-hacks/assets/104967297/ef49fd74-9248-4202-a24d-e250d1b7a47a)
+![Geometry Dash Screenshot 2023 12 23 - 18 23 36 40](https://github.com/Skyue1/gd-hacks/assets/104967297/d369eb39-bc30-4e61-920b-a20560d02fe9)
 
 # How to install and Inject
 
