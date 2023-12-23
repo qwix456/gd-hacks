@@ -32,11 +32,9 @@ struct settings
     bool testmode_bypass;
     bool ignore_esc;
     bool ignore_pause_esc;
-    bool audio_speedhack;
 };
 
 float speed = 1.0f;
-bool speeddhack_auddio = false;
 
 void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
