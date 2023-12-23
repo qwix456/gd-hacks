@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <windows.h>
@@ -28,6 +30,7 @@ struct settings
     bool no_death_texture;
     bool no_death_parcticle;
     bool no_particles;
+    bool no_transition;
     bool custom_object_bypass;
     bool testmode_bypass;
     bool ignore_esc;
@@ -35,10 +38,9 @@ struct settings
     bool audio_speedhack;
 };
 
-float speed = 1.0f;
-bool speeddhack_auddio = false;
+static float speed = 1.0f;
 
-void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
+static void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
     static std::unordered_map<uintptr_t, uint8_t*> values;
 	if (values.find(address) == values.end()) {
@@ -52,8 +54,8 @@ void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 	VirtualProtect(reinterpret_cast<void*>(address), bytes.size(), old_prot, &old_prot);
 }
 
-void(__thiscall* CCScheduler_update)(void*, float);
-void __fastcall CCScheduler_update_H(void* self, int, float dt)
+static void(__thiscall* CCScheduler_update)(void*, float);
+static void __fastcall CCScheduler_update_H(void* self, int, float dt)
 {
     dt *= speed;
     CCScheduler_update(self, dt);
@@ -61,8 +63,8 @@ void __fastcall CCScheduler_update_H(void* self, int, float dt)
 
 namespace hacks
 {
-    auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
-    auto cocos_base = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
+    static auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+    static auto cocos_base = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
 
     static void noclip(bool active)
     {
@@ -289,6 +291,14 @@ namespace hacks
             writeBytes(base + 0x2CC3AE, { 0xEB });
         else
             writeBytes(base + 0x2CC3AE, { 0x75 });
+    }
+
+    static void no_transition(bool active)
+    {
+        if(active)
+            writeBytes(cocos_base + 0xA907F, {0x90, 0x90, 0x90, 0x90, 0x90});
+        else
+            writeBytes(cocos_base + 0xA907F, {0xF3, 0x0F, 0x11, 0x04, 0x24});
     }
 
     static void treasure_room_bypass(bool active)

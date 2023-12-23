@@ -42,6 +42,8 @@ void RenderUI()
                     hacks::no_death_parcticle(hacks_.no_death_parcticle);
                 if (ImGui::Checkbox("No Particles", &hacks_.no_particles))
                     hacks::no_particles(hacks_.no_particles);
+                if (ImGui::Checkbox("No Transition", &hacks_.no_transition))
+                    hacks::no_transition(hacks_.no_transition);
                 if (ImGui::Checkbox("Ignore Pause ESC", &hacks_.ignore_pause_esc))
                     hacks::ignore_pause_esc(hacks_.ignore_pause_esc);
                 if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
