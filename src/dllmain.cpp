@@ -22,6 +22,8 @@ void RenderUI()
                     hacks::noclip(hacks_.noclip);
                 if (ImGui::Checkbox("Practice Music Hack", &hacks_.practice_music_hack))
                     hacks::practice(hacks_.practice_music_hack);
+                if (ImGui::Checkbox("Practice Mode In Platformer", &hacks_.practice_in_platformer))
+                    hacks::practice_in_platformer(hacks_.practice_in_platformer);
                 if (ImGui::Checkbox("Copy Hack", &hacks_.copy_hack))
                     hacks::copy_hack(hacks_.copy_hack);
                 if (ImGui::Checkbox("Verify Hack", &hacks_.verify_hack))
@@ -38,6 +40,8 @@ void RenderUI()
                     hacks::no_death_texture(hacks_.no_death_texture);
                 if (ImGui::Checkbox("No Death Effect", &hacks_.no_death_parcticle))
                     hacks::no_death_parcticle(hacks_.no_death_parcticle);
+                if (ImGui::Checkbox("No Particles", &hacks_.no_particles))
+                    hacks::no_particles(hacks_.no_particles);
                 if (ImGui::Checkbox("Ignore Pause ESC", &hacks_.ignore_pause_esc))
                     hacks::ignore_pause_esc(hacks_.ignore_pause_esc);
                 if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
@@ -74,6 +78,8 @@ void RenderUI()
                     hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
                 if (ImGui::Checkbox("Custom Object Bypass", &hacks_.custom_object_bypass))
                     hacks::custom_object_bypass(hacks_.custom_object_bypass);
+                if (ImGui::Checkbox("Testmode Bypass", &hacks_.testmode_bypass))
+                    hacks::testmode_bypass(hacks_.testmode_bypass);
 
                 ImGui::EndTabItem();
             }
@@ -99,7 +105,7 @@ DWORD WINAPI MainThread(LPVOID lpParam)
         MH_CreateHook(target, hook, trampoline);
     });
 
-    MH_CreateHook(GetProcAddress(hacks::cocos_base, "?update@CCScheduler@cocos2d@@UAEXM@Z"), CCScheduler_update_H, (void**)&CCScheduler_update);
+    MH_CreateHook(reinterpret_cast<void*>(GetProcAddress(reinterpret_cast<HMODULE>(hacks::cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, reinterpret_cast<void**>(&CCScheduler_update));
     MH_EnableHook(MH_ALL_HOOKS);
 
     return S_OK;

@@ -1,11 +1,14 @@
 #include <vector>
 #include <string>
 #include <windows.h>
+#include <psapi.h>
+#include <unordered_map>
 
 struct settings
 {
     bool noclip;
     bool practice_music_hack;
+    bool practice_in_platformer;
     bool unlock_all;
     bool unlock_all_levels;
     bool copy_hack;
@@ -24,22 +27,29 @@ struct settings
     bool treasure_room_bypass;
     bool no_death_texture;
     bool no_death_parcticle;
+    bool no_particles;
     bool custom_object_bypass;
+    bool testmode_bypass;
     bool ignore_esc;
     bool ignore_pause_esc;
     bool audio_speedhack;
 };
 
 float speed = 1.0f;
+bool speeddhack_auddio = false;
 
-inline bool writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
+void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
-        return WriteProcessMemory(
-        GetCurrentProcess(),
-        reinterpret_cast<LPVOID>(address),
-        bytes.data(),
-        bytes.size(),
-        nullptr);
+    static std::unordered_map<uintptr_t, uint8_t*> values;
+	if (values.find(address) == values.end()) {
+		auto data = new uint8_t[bytes.size()];
+		memcpy(data, reinterpret_cast<void*>(address), bytes.size());
+		values[address] = data;
+	}
+	DWORD old_prot;
+	VirtualProtect(reinterpret_cast<void*>(address), bytes.size(), PAGE_EXECUTE_READWRITE, &old_prot);
+	memcpy(reinterpret_cast<void*>(address), bytes.data(), bytes.size());
+	VirtualProtect(reinterpret_cast<void*>(address), bytes.size(), old_prot, &old_prot);
 }
 
 void(__thiscall* CCScheduler_update)(void*, float);
@@ -51,8 +61,8 @@ void __fastcall CCScheduler_update_H(void* self, int, float dt)
 
 namespace hacks
 {
-    inline auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
-    inline auto cocos_base = GetModuleHandleA("libcocos2d.dll");
+    auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
+    auto cocos_base = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
 
     static void noclip(bool active)
     {
@@ -68,6 +78,18 @@ namespace hacks
             writeBytes(base + 0x2E4F35, {0xEB});
         else
             writeBytes(base + 0x2E4F35, {0x75});
+    }
+
+    static void practice_in_platformer(bool active)
+    {
+        if(active){
+            writeBytes(base + 0x2B3B0C, {0x90, 0x90});
+            writeBytes(base + 0x2B3AE1, {0x75});
+        }
+        else{
+            writeBytes(base + 0x2B3B0C, {0xEB, 0x50});
+            writeBytes(base + 0x2B3AE1, {0x74});
+        }
     }
 
     static void unlock_all(bool active)
@@ -103,10 +125,16 @@ namespace hacks
 
     static void verify_hack(bool active)
     {
-        if(active)
-            writeBytes(base + 0x381BF5, {0xEB});
-        else
+        if(active) {
+            writeBytes(base + 0x381BF5, {0x75});
+            writeBytes(base + 0x80617, {0xBA, 0xA8});
+            writeBytes(base + 0x9D538, {0x90, 0x90});
+        }
+        else {
             writeBytes(base + 0x381BF5, {0x74});
+            writeBytes(base + 0x80617, {0xBA, 0xB4});
+            writeBytes(base + 0x9D538, {0x75, 0x11});
+        }
     }
 
     static void level_edit(bool active)
@@ -187,6 +215,14 @@ namespace hacks
             writeBytes(base + 0x221C29, {0xE9, 0xA7, 0x08, 0x00, 0x00, 0x90});
         else
             writeBytes(base + 0x221C29, {0xF, 0x84, 0xA6, 0x08, 0x00, 0x00});
+    }
+
+    static void no_particles(bool active)
+    {
+        if(active)
+            writeBytes(cocos_base + 0xBC8D9, {0x74});
+        else
+            writeBytes(cocos_base + 0xBC8D9, {0x75});
     }
 
     static void buy_item_bypass(bool active) // idk what name
@@ -291,5 +327,13 @@ namespace hacks
             writeBytes(base + 0xA76A4, { 0x0F, 0x86, 0x82 });
             writeBytes(base + 0xA7854, { 0x77, 0x3A });
         }
+    }
+
+    static void testmode_bypass(bool active)
+    {
+        if(active)
+            writeBytes(base + 0x2D7D75, {0x0F, 0x85});
+        else
+            writeBytes(base + 0x2D7D75, {0x0F, 0x84});
     }
 } // namespace name
