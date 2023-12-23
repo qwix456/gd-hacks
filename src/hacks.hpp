@@ -37,11 +37,7 @@ struct settings
     bool ignore_pause_esc;
 };
 
-<<<<<<< HEAD
 static float speed = 1.0f;
-=======
-float speed = 1.0f;
->>>>>>> 7de4f9dd016aa4a6408ab32dd599b38d69583f9b
 
 static void writeBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
 {
