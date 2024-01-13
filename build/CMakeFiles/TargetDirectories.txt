@@ -1,0 +1,11 @@
+E:/gd-hacks/build/CMakeFiles/gd-hacks.dir
+E:/gd-hacks/build/CMakeFiles/INSTALL.dir
+E:/gd-hacks/build/CMakeFiles/ALL_BUILD.dir
+E:/gd-hacks/build/CMakeFiles/ZERO_CHECK.dir
+E:/gd-hacks/build/libraries/cocos-headers/CMakeFiles/INSTALL.dir
+E:/gd-hacks/build/libraries/cocos-headers/CMakeFiles/ALL_BUILD.dir
+E:/gd-hacks/build/libraries/minhook/CMakeFiles/minhook.dir
+E:/gd-hacks/build/libraries/minhook/CMakeFiles/INSTALL.dir
+E:/gd-hacks/build/libraries/minhook/CMakeFiles/ALL_BUILD.dir
+E:/gd-hacks/build/libraries/imgui-hook/CMakeFiles/imgui-hook.dir
+E:/gd-hacks/build/libraries/imgui-hook/CMakeFiles/INSTALL.dir

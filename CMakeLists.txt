@@ -6,15 +6,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(PROJECT gd-hacks)
 project(${PROJECT})
 
+
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 add_library(${PROJECT} SHARED ${SOURCE_FILES})
 
 target_include_directories(${PROJECT} PRIVATE
   libraries/minhook/include
   libraries/imgui-hook
-  libraries/imgui-hook/imgui
+  libraries/imgui
+  libraries/cocos-headers/cocos2dx/
+	libraries/cocos-headers/cocos2dx/include
+	libraries/cocos-headers/cocos2dx/kazmath/include
+	libraries/cocos-headers/cocos2dx/platform/win32
+	libraries/cocos-headers/cocos2dx/platform/third_party/win32
+	libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
+  libraries
 )
 
+add_subdirectory(libraries/cocos-headers)
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
-target_link_libraries(${PROJECT} minhook imgui-hook opengl32)
+
+target_link_libraries(${PROJECT} minhook imgui-hook opengl32 ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/libcocos2d.lib ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib)

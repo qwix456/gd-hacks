@@ -1,13 +1,20 @@
-#include <Windows.h>
-#include <gl/GL.h>
-#include <functional>
-#include <imgui.h>
+#ifndef IMGUI_HOOK_HPP
+#define IMGUI_HOOK_HPP
 
-typedef BOOL(WINAPI* SwapBuffersType)(HDC hdc);
+#include <imgui.h>
+#include <backends/imgui_impl_win32.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <functional>
+#include <cocos2d.h>
 
 namespace ImGuiHook {
-    void Load(std::function<void(void*, void*, void**)> hookFunc);
-    void Unload();
+    void _stub();
+
+    void setupHooks(std::function<void(void*, void*, void**)> hookFunc);
     void setRenderFunction(std::function<void()> func);
-    void setToggleFunction(std::function<void()> func);
-}
+    void setInitFunction(std::function<void()> func);
+    void setKeybind(size_t key);
+    void setKeyPressHandler(std::function<void(int)> func);
+} // namespace ImGuiHook
+
+#endif // IMGUI_HOOK_HPP
