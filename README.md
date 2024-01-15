@@ -45,6 +45,6 @@ If you prefer to compile GD-Hacks from the source code, follow these steps:
    make
    ```
 
-7. After a successful compilation, you will find the compiled `gd-hacks.dll` and `libExtensions.dll` in the build directory. Move these files to the Geometry Dash folder, as mentioned in the "How to Install and Inject" section.
+7. After a successful compilation, you will find the compiled `gd-hacks.dll` in the build directory. Move these files to the Geometry Dash folder, as mentioned in the "How to Install and Inject" section.
 
 Now you have a freshly compiled version of GD-Hacks ready for use.
