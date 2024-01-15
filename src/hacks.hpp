@@ -2,15 +2,7 @@
 
 #include <vector>
 #include <string>
-#include <windows.h>
-
-static void WriteBytes(std::uintptr_t address, std::vector<uint8_t> bytes)
-{
-	DWORD old_prot;
-	VirtualProtect(reinterpret_cast<void*>(address), bytes.size(), PAGE_EXECUTE_READWRITE, &old_prot);
-	memcpy(reinterpret_cast<void*>(address), bytes.data(), bytes.size());
-	VirtualProtect(reinterpret_cast<void*>(address), bytes.size(), old_prot, &old_prot);
-}
+#include "utils.hpp"
 
 namespace hacks
 {
@@ -112,6 +104,58 @@ namespace hacks
         }
         else {
             WriteBytes(base + 0x2F9A7, {0x7C});
+        }
+    }
+
+    static void treasure_room_bypass(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x700FB, {0x90, 0x90, 0x90});
+            WriteBytes(base + 0x71175, {0x90, 0x90});
+        }
+        else {
+            WriteBytes(base + 0x700FB, {0x0F, 0x44, 0xCA});
+            WriteBytes(base + 0x71175, {0x74, 0x4C});
+        }
+    }
+
+    static void scratch_bypass(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2FE5BA, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x2FE5BA, {0x75});
+        }
+    }
+
+    static void potbor_bypass(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2FE5DE, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x2FE5DE, {0x75});
+        }
+    }
+
+    static void the_mechanic_bypass(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2FE602, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x2FE602, {0x75});
+        }
+    }
+
+    static void diamond_shopkeeper_bypass(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2FE626, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x2FE626, {0x75});
         }
     }
 } // namespace name

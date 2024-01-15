@@ -61,8 +61,32 @@ public:
         return m_totalObjects1() - m_totalObjects2();
     }
 
+    auto setJumps() {
+        return from<int>(this, 0x274) = 0;
+    }
+
+    auto setJumps1() {
+        return from<int>(this, 0x278) = 0;
+    }
+
+    auto setAttempt() {
+        return from<int>(this, 0x268) = 0;
+    }
+
+    auto setAttempt1() {
+        return from<int>(this, 0x26c) = 0;
+    }
+
     auto m_totalJumps() {
         return m_totalJumps1() - m_totalJumps2();
+    }
+
+    auto setZeroJumps() {
+        return setJumps() - setJumps1();
+    }
+
+    auto setZeroAtt() {
+        return setAttempt() - setAttempt1();
     }
 
     auto m_totalAtt() {
@@ -88,6 +112,54 @@ public:
     auto m_normal() {
         return m_normal1() - m_normal2();
     }
+
+    auto setNormal() {
+        return from<int>(this, 0x2A8) = 0;
+    }
+
+    auto setNormal1() {
+        return from<int>(this, 0x2A4) = 0;
+    }
+
+    auto setZeroNormal() {
+        return setNormal() - setNormal1();
+    }
+
+    auto setPractice() {
+        return from<int>(this, 0x2C4) = 0;
+    }
+
+    auto coins1() {
+        return from<int>(this, 0x314);
+    }
+
+    auto coins2() {
+        return from<int>(this, 0x318);
+    }
+
+    auto coins() {
+        return coins1() - coins2();
+    }
+};
+
+class GameStatsManager : public cocos2d::CCNode
+{
+public:
+    static GameStatsManager* sharedState() {
+        return reinterpret_cast<GameStatsManager* (__stdcall*)()>(
+            base + 0x167D90
+        )();
+    }
+
+    void uncompleteLevel(GJGameLevel* lvl) {
+        reinterpret_cast<void(__thiscall*)(
+            GameStatsManager*, GJGameLevel*
+        )>(
+            base + 0x170400
+        )(
+            this, lvl
+        );
+    }
 };
 
 class PlayLayer : public cocos2d::CCLayer
@@ -95,6 +167,10 @@ class PlayLayer : public cocos2d::CCLayer
 public:
     auto typeTrigger() {
         return from<int>(this, 0x384);
+    }
+
+    auto m_nDrawNode() {
+        return from<cocos2d::CCDrawNode*>(this, 0x2D70);
     }
 
     auto m_pPlayer1() {
@@ -115,10 +191,6 @@ public:
 
     auto m_dualMode() {
         return from<bool>(this, 0x36E);
-    }
-
-    auto m_idk() {
-        return from<double>(this, 0x330);
     }
 
     // auto m_ground() {

@@ -7,19 +7,17 @@
 #include <filesystem>
 
 static bool g_visible = false;
-std::vector<HMODULE> Dlls;
 struct settings hacks_;
+HWND g_hWnd = FindWindow(nullptr, "Geometry Dash");
 
-__declspec(dllexport) void HACKS()
-{
+__declspec(dllexport) void HACKS() {
     return;
 }
 
-void SetColors()
-{
+void SetColors() {
     ImGuiStyle* style = &ImGui::GetStyle();
     ImGuiIO& io = ImGui::GetIO();
-    io.Fonts->AddFontFromMemoryTTF(output, 14, 15.0f);
+    io.Fonts->AddFontFromMemoryTTF(font, 14, 15.0f);
 
     style->Colors[ImGuiCol_FrameBg] = ImVec4(0.31f, 0.31f, 0.31f, 0.54f);
     style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.59f, 0.59f, 0.59f, 0.40f);
@@ -28,12 +26,15 @@ void SetColors()
     style->Colors[ImGuiCol_CheckMark] = ImVec4(0.89f, 0.89f, 0.89f, 1.00f);
     style->Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.71f, 0.71f, 0.71f, 0.35f);
     style->Colors[ImGuiCol_WindowBg] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    style->Colors[ImGuiCol_Button] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
+    style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
+    style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
+
     style->FrameRounding = 4.00f;
     style->WindowRounding = 4.00f;
 }
 
-void RenderInfo()
-{
+void RenderInfo() {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
     ImGui::Begin("Info", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -58,8 +59,7 @@ void RenderInfo()
     ImGui::PopStyleVar();
 }
 
-void RenderLevel()
-{
+void RenderLevel() {
     if (ImGui::Begin("Level", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Checkbox("Show Layout", &hacks_.show_layout))
             hacks::layout_mode(hacks_.show_layout);
@@ -71,8 +71,7 @@ void RenderLevel()
     ImGui::End();
 }
 
-void RenderPlayer()
-{
+void RenderPlayer() {
     if (ImGui::Begin("Player", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Checkbox("NoClip", &hacks_.noclip))
             hacks::noclip(hacks_.noclip);
@@ -87,8 +86,7 @@ void RenderPlayer()
     ImGui::End();
 }
 
-void RenderLabel()
-{
+void RenderLabel() {
     if (ImGui::Begin("Labels", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         ImGui::Checkbox("LevelID", &hacks_.level_id);
         ImGui::Checkbox("Attempts", &hacks_.total_attempts);
@@ -100,8 +98,7 @@ void RenderLabel()
     ImGui::End();
 }
 
-void RenderCreator()
-{
+void RenderCreator() {
     if (ImGui::Begin("Creator", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Checkbox("Copy Hack", &hacks_.copy_hack))
             hacks::copy_hack(hacks_.copy_hack);
@@ -114,11 +111,45 @@ void RenderCreator()
     ImGui::End();
 }
 
-void RenderBypass()
-{
+void RenderBypass() {
     if (ImGui::Begin("Bypass", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ImGui::Checkbox("Text Bypass", &hacks_.text_bypass))
             hacks::text_bypass(hacks_.text_bypass);
+        if (ImGui::Checkbox("Treasure Room Bypass", &hacks_.treasure_room_bypass))
+            hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
+        if (ImGui::Checkbox("Scratch Bypass", &hacks_.scratch_bypass))
+            hacks::scratch_bypass(hacks_.scratch_bypass);
+        if (ImGui::Checkbox("Potbor Bypass", &hacks_.potbor_bypass))
+            hacks::potbor_bypass(hacks_.potbor_bypass);
+        if (ImGui::Checkbox("The Mechanic Bypass", &hacks_.the_mechanic_bypass))
+            hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
+        if (ImGui::Checkbox("Diamond Shopkeeper Bypass", &hacks_.diamond_shopkeeper_bypass))
+            hacks::diamond_shopkeeper_bypass(hacks_.diamond_shopkeeper_bypass);
+    }
+
+    ImGui::End();
+}
+
+void RenderUtils() {
+    if (ImGui::Begin("Utils", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ImGui::Button("Inject DLL")) {
+            const char* dllPath = OpenDialogDLL(g_hWnd);
+            if (dllPath != nullptr) {
+                InjectDLL(GetCurrentProcessId(), dllPath);
+            }
+        }
+        if (ImGui::Button("Uncomplete Level"))
+        {
+            if (CheatHooks::pl)
+            {
+                CheatHooks::pl->m_level()->setZeroJumps();
+                CheatHooks::pl->m_level()->setZeroAtt();
+                CheatHooks::pl->m_level()->setZeroNormal();
+                CheatHooks::pl->m_level()->setPractice();
+            }
+        }
+
+        ImGui::Text("DLLs loaded: %d", loadedDlls);
     }
 
     ImGui::End();
@@ -134,30 +165,15 @@ void RenderUI()
         RenderPlayer();
         RenderCreator();
         RenderBypass();
+        RenderUtils();
     }
 }
 
-void LoadDll()
-{
-    for (auto& ent : std::filesystem::directory_iterator("gd-hacks/dlls")) {
-        if (ent.is_regular_file() && ent.path().extension() == ".dll") {
-                HMODULE module = LoadLibraryA(ent.path().generic_string().c_str());            
-                if (module != nullptr) {
-                    Dlls.push_back(module);
-            }
-        }
-    }
-}
-
-DWORD WINAPI MainThread(LPVOID lpParam)
-{
+DWORD WINAPI MainThread(void* lpParam) {
     MH_Initialize();
 
-    if (!std::filesystem::exists("gd-hacks"))
-        std::filesystem::create_directory("gd-hacks");
-
-    if (!std::filesystem::exists("gd-hacks/dlls"))
-        std::filesystem::create_directory("gd-hacks/dlls");
+    std::filesystem::create_directory("gd-hacks");
+    std::filesystem::create_directory("gd-hacks/dlls");
 
     LoadDll();
     saving::Load();
@@ -172,18 +188,16 @@ DWORD WINAPI MainThread(LPVOID lpParam)
         MH_CreateHook(target, hook, trampoline);
     });
     CheatHooks::init();
-    //CheatHooks::console();
 
     MH_EnableHook(MH_ALL_HOOKS);
     return S_OK;
 }
 
-DWORD WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
-{
-	if (dwReason == 1) {
+DWORD WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
+	if (dwReason == DLL_PROCESS_ATTACH) {
         CreateThread(0, 0, MainThread, 0, 0, 0);
     }
-    else if (dwReason == 0) {
+    else if (dwReason == DLL_PROCESS_DETACH) {
         for (HMODULE module : Dlls) {
             FreeLibrary(module);
         }

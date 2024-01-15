@@ -30,6 +30,11 @@ namespace saving
             hacks::unlock_all(hacks_.unlock_all);
             hacks::custom_object_bypass(hacks_.custom_object_bypass);
             hacks::verify_hack(hacks_.verify_hack);
+            hacks::treasure_room_bypass(hacks_.treasure_room_bypass);
+            hacks::scratch_bypass(hacks_.scratch_bypass);
+            hacks::potbor_bypass(hacks_.potbor_bypass);
+            hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
+            hacks::diamond_shopkeeper_bypass(hacks_.diamond_shopkeeper_bypass);
         }
         f.close();
     }

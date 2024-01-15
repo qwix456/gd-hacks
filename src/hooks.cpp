@@ -18,8 +18,8 @@ namespace CheatHooks {
             if (objectType == 7) {
                 GameObject_setVisible(self, false);
                 return;
-            } else if (objectType == 0) {
-                GameObject_setVisible(self, true);
+            }
+            if (objectType == 0) {
                 return;
             }
         }
@@ -31,10 +31,12 @@ namespace CheatHooks {
         if (hacks_.show_layout) {
             uint32_t objectID = self[0xE1];
             int objectType = MBO(int, self, 0x31c);
-            float objectGlow = MBO(float, self, 0x3b4);
 
             if (objectType == 7) {
                 GameObject_setOpacity(self, 0);
+                return;
+            }
+            if (objectType == 0) {
                 return;
             }
         }

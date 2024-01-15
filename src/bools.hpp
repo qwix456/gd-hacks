@@ -6,6 +6,7 @@ struct settings
     bool show_layout;
     bool startpos_switcher;
     bool alt_keys;
+    float speed = 1.0f;
 
     // labels
     bool level_id;
@@ -27,6 +28,9 @@ struct settings
 
     // bypass
     bool text_bypass;
-
-    float speed = 1.0f;
+    bool treasure_room_bypass;
+    bool scratch_bypass;
+    bool potbor_bypass;
+    bool the_mechanic_bypass;
+    bool diamond_shopkeeper_bypass;
 };
