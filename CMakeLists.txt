@@ -20,6 +20,7 @@ target_include_directories(${PROJECT} PRIVATE
 	libraries/cocos-headers/cocos2dx/platform/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
+  libraries/discord-rpc/include
   libraries
 )
 
@@ -27,4 +28,4 @@ add_subdirectory(libraries/cocos-headers)
 add_subdirectory(libraries/minhook)
 add_subdirectory(libraries/imgui-hook)
 
-target_link_libraries(${PROJECT} minhook imgui-hook opengl32 ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/libcocos2d.lib ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib)
+target_link_libraries(${PROJECT} minhook imgui-hook opengl32 ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/libcocos2d.lib ${CMAKE_SOURCE_DIR}/libraries/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib ${CMAKE_SOURCE_DIR}/libraries/discord-rpc/extensions/discord-rpc.lib)

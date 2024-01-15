@@ -9,6 +9,7 @@ struct settings
     float speed = 1.0f;
 
     // labels
+    bool author;
     bool level_id;
     bool total_attempts;
     bool total_jumps;
@@ -33,4 +34,7 @@ struct settings
     bool potbor_bypass;
     bool the_mechanic_bypass;
     bool diamond_shopkeeper_bypass;
+
+    // utils
+    bool discord_rpc;
 };

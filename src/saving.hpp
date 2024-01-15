@@ -11,16 +11,18 @@ namespace saving
     void Save() {
         std::ofstream f;
         f.open("gd-hacks/hacks.bin", std::fstream::binary);
-        if (f)
-            f.write((char*)&hacks_, sizeof(settings));
-        f.close();
+        if (f) {
+            f.write(reinterpret_cast<char*>(&hacks_), sizeof(settings));
+            f.close();
+        }
     }
 
     void Load() {
         std::ifstream f;
         f.open("gd-hacks/hacks.bin", std::fstream::binary);
         if (f) {
-            f.read((char*)&hacks_, sizeof(settings));
+            f.read(reinterpret_cast<char*>(&hacks_), sizeof(settings));
+            f.close();
             hacks::copy_hack(hacks_.copy_hack);
             hacks::layout_mode(hacks_.show_layout);
             hacks::no_shaders(hacks_.no_shaders);
@@ -36,6 +38,5 @@ namespace saving
             hacks::the_mechanic_bypass(hacks_.the_mechanic_bypass);
             hacks::diamond_shopkeeper_bypass(hacks_.diamond_shopkeeper_bypass);
         }
-        f.close();
     }
 } // namespace saving

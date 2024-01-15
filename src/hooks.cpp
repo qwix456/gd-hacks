@@ -1,6 +1,7 @@
 #include "hooks.hpp"
 #include "hacks.hpp"
 #include "bools.hpp"
+#include "rich.hpp"
 
 extern struct settings hacks_;
 
@@ -78,6 +79,23 @@ namespace CheatHooks {
     }
 
     void __fastcall PlayLayer_resetLevel_H(PlayLayer *self) {
+        if (hacks_.discord_rpc) {
+            bool isRated = self->m_level()->m_stars() != 0;
+            bool isRobTopLvl = self->m_level()->m_levelID() < 128 || self->m_level()->m_levelID() == 3001;
+
+            if (self->m_level()->m_levelType() != 2) {
+                state = std::string(self->m_level()->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(self->m_level()->m_levelAuthor().c_str()) + "(" + std::to_string(self->m_level()->m_normal()) + "%)");
+            }
+
+            rich::updateDiscordRP(
+                "Playing Level",
+                state,
+                getAssetKey(self->m_level()),
+                (isRated) ? "Rated" : "Not Rated",
+                true
+            );
+        }
+        
         PlayLayer_resetLevel(self);
     }
 
@@ -90,7 +108,54 @@ namespace CheatHooks {
     }
 
     bool __fastcall PlayLayer_init_H(PlayLayer *self, int edx, GJGameLevel *m_level, bool unk, bool unk_2) {
+        if (hacks_.discord_rpc) {
+            bool isRated = m_level->m_stars() != 0;
+            bool isRobTopLvl = m_level->m_levelID() < 128 || m_level->m_levelID() == 3001;
+
+            if (m_level->m_levelType() != 2) {
+                state = std::string(m_level->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(m_level->m_levelAuthor().c_str()) + "(" + std::to_string(m_level->m_normal()) + "%)");
+            }
+
+            rich::updateDiscordRP(
+                "Playing Level",
+                state,
+                getAssetKey(m_level),
+                (isRated) ? "Rated" : "Not Rated",
+                true
+            );
+        }
+
         return PlayLayer_init(self, m_level, unk, unk_2);
+    }
+
+    bool __fastcall MenuLayer_init_H(MenuLayer* self, void* unk) {
+        if (hacks_.discord_rpc) {
+            rich::initDiscordRP();
+            rich::updateDiscordRP("Browsing Menu");
+        }
+        
+        return MenuLayer_init(self);
+    }
+
+    bool __fastcall CreatorLayer_init_H(CreatorLayer* self, void* unk) {
+        if (hacks_.discord_rpc) {
+            rich::updateDiscordRP("Browsing Menu", "Creator Tab");
+        }
+        return CreatorLayer_init(self);
+    }
+
+    bool __fastcall LevelInfoLayer_init_H(LevelInfoLayer *self, int edx, GJGameLevel *m_level, bool unk) {
+        if (hacks_.discord_rpc) {
+            bool isRated = m_level->m_stars() != 0;
+
+            rich::updateDiscordRP(
+                "Viewing Level", 
+                std::string(m_level->m_levelName().c_str()) + " by " + std::string(m_level->m_levelAuthor().c_str()),
+                getAssetKey(m_level),
+                (isRated) ? "Rated" : "Not Rated");
+        }
+
+        return LevelInfoLayer_init(self, m_level, unk);
     }
 
     void __fastcall StartPosObject_init_H(void *self, void *unk) {
@@ -152,6 +217,9 @@ namespace CheatHooks {
     }
 
     void init() {
+        MH_CreateHook((void*)(hacks::base + 0x27B450), MenuLayer_init_H, (void**)&MenuLayer_init);
+        MH_CreateHook((void*)(hacks::base + 0x6F550), CreatorLayer_init_H, (void**)&CreatorLayer_init);
+        MH_CreateHook((void*)(hacks::base + 0x2516A0), LevelInfoLayer_init_H, (void**)&LevelInfoLayer_init);
         MH_CreateHook((void*)(hacks::base + 0x13B890), GameObject_setVisible_H, (void**)&GameObject_setVisible);
         MH_CreateHook((void*)(hacks::base + 0x13B490), GameObject_setOpacity_H, (void**)&GameObject_setOpacity);
         MH_CreateHook((void*)(hacks::base + 0x2E2BF0), PlayLayer_updateVisibility_H, (void**)&PlayLayer_updateVisibility);

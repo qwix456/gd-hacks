@@ -49,6 +49,15 @@ namespace CheatHooks
     inline void(__thiscall* GJBaseGameLayer_updateLevelColors)(PlayLayer*);
     inline void __fastcall GJBaseGameLayer_updateLevelColors_H(PlayLayer* self, void* unk);
 
+    inline bool(__thiscall* MenuLayer_init)(MenuLayer*);
+    inline bool __fastcall MenuLayer_init_H(MenuLayer* self, void* unk);
+
+    inline bool(__thiscall* CreatorLayer_init)(CreatorLayer*);
+    inline bool __fastcall CreatorLayer_init_H(CreatorLayer* self, void* unk);
+
+    inline bool(__thiscall* LevelInfoLayer_init)(LevelInfoLayer*, GJGameLevel*, bool);
+    inline bool __fastcall LevelInfoLayer_init_H(LevelInfoLayer* self, int edx, GJGameLevel* m_level, bool unk);
+
     inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
 
     void UpdatePositions(int index);
@@ -61,6 +70,7 @@ namespace CheatHooks
     inline int startPosIndex = -1;
     inline float tmp[] = {0, 0};
     inline bool altKeys = false;
+    inline std::string state;
 
     void init();
     void console();

@@ -8,7 +8,6 @@
 #include <cocos2d.h>
 #include <chrono>
 #include <vector>
-#include <thread>
 
 using namespace cocos2d;
 using namespace std::chrono;

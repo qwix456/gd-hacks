@@ -4,6 +4,7 @@
 #include "bools.hpp"
 #include "saving.hpp"
 #include "font.h"
+#include "rich.hpp"
 #include <filesystem>
 
 static bool g_visible = false;
@@ -42,6 +43,8 @@ void RenderInfo() {
     if (CheatHooks::pl != nullptr) {
         ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 255, 255, 200).Value);
 
+        if (hacks_.author)
+            ImGui::Text("Author %s", CheatHooks::pl->m_level()->m_levelAuthor().c_str());
         if (hacks_.level_id)
             ImGui::Text("LevelID %i", CheatHooks::pl->m_level()->m_levelID());
         if (hacks_.total_attempts)
@@ -88,6 +91,7 @@ void RenderPlayer() {
 
 void RenderLabel() {
     if (ImGui::Begin("Labels", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Checkbox("Author", &hacks_.author);
         ImGui::Checkbox("LevelID", &hacks_.level_id);
         ImGui::Checkbox("Attempts", &hacks_.total_attempts);
         ImGui::Checkbox("Jumps", &hacks_.total_jumps);
@@ -146,8 +150,11 @@ void RenderUtils() {
                 CheatHooks::pl->m_level()->setZeroAtt();
                 CheatHooks::pl->m_level()->setZeroNormal();
                 CheatHooks::pl->m_level()->setPractice();
+                CheatHooks::pl->m_level()->setZeroLead();
             }
         }
+
+        ImGui::Checkbox("Discord RPC", &hacks_.discord_rpc);
 
         ImGui::Text("DLLs loaded: %d", loadedDlls);
     }
