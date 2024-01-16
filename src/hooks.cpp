@@ -6,21 +6,18 @@
 extern struct settings hacks_;
 
 namespace CheatHooks {
-    void __fastcall CCScheduler_update_H(void *self, int, float dt) {
+    void __fastcall CCScheduler_update_H(CCScheduler *self, int, float dt) {
         dt *= hacks_.speed;
         CCScheduler_update(self, dt);
     }
 
-    void __fastcall GameObject_setVisible_H(uint32_t *self, int, bool visible) {
+    void __fastcall GameObject_setVisible_H(GameObject *self, int, bool visible) {
         if (hacks_.show_layout) {
-            uint32_t objectID = self[0xE1];
-            int objectType = MBO(int, self, 0x31c);
-
-            if (objectType == 7) {
+            if (self->m_objectType() == 7) {
                 GameObject_setVisible(self, false);
                 return;
             }
-            if (objectType == 0) {
+            if (self->m_objectType() == 0) {
                 return;
             }
         }
@@ -28,16 +25,13 @@ namespace CheatHooks {
         GameObject_setVisible(self, visible);
     }
 
-    void __fastcall GameObject_setOpacity_H(uint32_t *self, int, unsigned char opacity) {
+    void __fastcall GameObject_setOpacity_H(GameObject *self, int, unsigned char opacity) {
         if (hacks_.show_layout) {
-            uint32_t objectID = self[0xE1];
-            int objectType = MBO(int, self, 0x31c);
-
-            if (objectType == 7) {
+            if (self->m_objectType() == 7) {
                 GameObject_setOpacity(self, 0);
                 return;
             }
-            if (objectType == 0) {
+            if (self->m_objectType() == 0) {
                 return;
             }
         }
@@ -45,7 +39,7 @@ namespace CheatHooks {
         GameObject_setOpacity(self, opacity);
     }
 
-    void __fastcall GameObject_setGlowColor_H(uint32_t *self, int, _ccColor3B const& color) {
+    void __fastcall GameObject_setGlowColor_H(GameObject *self, int, _ccColor3B const& color) {
         if (hacks_.show_layout) {
             GameObject_setGlowColor(self, ccc3(255, 255, 255));
             return;
@@ -54,11 +48,9 @@ namespace CheatHooks {
         GameObject_setGlowColor(self, color);
     }
 
-    void __fastcall PlayLayer_updateVisibility_H(void *self, int, void *dt, void *unk, void *unk_2) {
+    void __fastcall PlayLayer_updateVisibility_H(PlayLayer *self, int, void *dt, void *unk, void *unk_2) {
         if (hacks_.show_layout) {
-            int objectType = MBO(int, self, 0x384);
-
-            if (objectType == 899 || objectType == 1006 || objectType == 1007 || objectType == 2903) {
+            if (self->typeTrigger() == 899 || self->typeTrigger() == 1006 || self->typeTrigger() == 1007 || self->typeTrigger() == 2903) {
                 return;
             }
         }
@@ -66,10 +58,9 @@ namespace CheatHooks {
         PlayLayer_updateVisibility(self, dt, unk, unk_2);
     }
 
-    void __fastcall GameObject_setObjectColor_H(uint32_t *self, int, _ccColor3B const& color) {
+    void __fastcall GameObject_setObjectColor_H(GameObject *self, int, _ccColor3B const& color) {
         if (hacks_.show_layout) {
-            int objectType = MBO(int, self, 0x31c);
-            if (objectType != 7) {
+            if (self->m_objectType() != 7) {
                 GameObject_setObjectColor(self, ccc3(255, 255, 255));
                 return;
             }
@@ -213,6 +204,7 @@ namespace CheatHooks {
         if (hacks_.show_layout) {
             return;
         }
+        
         GJBaseGameLayer_updateLevelColors(self);
     }
 

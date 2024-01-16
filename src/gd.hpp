@@ -9,9 +9,21 @@ R& from(T base, intptr_t offset) {
 	return *reinterpret_cast<R*>(reinterpret_cast<uintptr_t>(base) + offset);
 }
 
-class GameObject : public cocos2d::CCSprite
+class CCSpritePlus : public CCSprite {
+public:
+
+};
+
+class GameObject : public CCSpritePlus
 {
 public:
+    auto m_glow() {
+        return from<CCSprite*>(this, 0x280);
+    }
+
+    auto m_objectType() {
+        return from<int>(this, 0x31c);
+    }
 };
 
 class PlayerObject : public cocos2d::CCSprite
@@ -360,10 +372,6 @@ public:
 class PlayLayer : public cocos2d::CCLayer
 {
 public:
-    auto typeTrigger() {
-        return from<int>(this, 0x384);
-    }
-
     auto m_nDrawNode() {
         return from<cocos2d::CCDrawNode*>(this, 0x2D70);
     }
@@ -386,6 +394,10 @@ public:
 
     auto m_dualMode() {
         return from<bool>(this, 0x36E);
+    }
+
+    auto typeTrigger() {
+        return from<int>(this, 0x384);
     }
 
     // auto m_ground() {

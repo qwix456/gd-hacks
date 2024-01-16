@@ -10,7 +10,7 @@ namespace saving
 {
     void Save() {
         std::ofstream f;
-        f.open("gd-hacks/hacks.bin", std::fstream::binary);
+        f.open("gdhacks/hacks.bin", std::fstream::binary);
         if (f) {
             f.write(reinterpret_cast<char*>(&hacks_), sizeof(settings));
             f.close();
@@ -19,7 +19,7 @@ namespace saving
 
     void Load() {
         std::ifstream f;
-        f.open("gd-hacks/hacks.bin", std::fstream::binary);
+        f.open("gdhacks/hacks.bin", std::fstream::binary);
         if (f) {
             f.read(reinterpret_cast<char*>(&hacks_), sizeof(settings));
             f.close();

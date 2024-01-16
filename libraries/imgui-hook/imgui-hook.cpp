@@ -59,21 +59,20 @@ namespace ImGuiHook {
 
 			MSG msg;
 			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
 
-				if (ImGui_ImplWin32_WndProcHandler(msg.hwnd, msg.message, msg.wParam, msg.lParam))
-					continue;
+					if (ImGui_ImplWin32_WndProcHandler(msg.hwnd, msg.message, msg.wParam, msg.lParam))
+						continue;
 
-				if (msg.message == WM_SETFOCUS || msg.message == WM_KILLFOCUS)
-					continue;
-				
-				bool blockInput = io.WantCaptureMouse || io.WantCaptureKeyboard;
+					if (msg.message == WM_SETFOCUS || msg.message == WM_KILLFOCUS)
+						continue;
+					
+					bool blockInput = io.WantCaptureMouse || io.WantCaptureKeyboard;
 
-            	if (!blockInput && msg.message == WM_KEYDOWN && g_keyPressCallback) {
-                	g_keyPressCallback(msg.wParam);
-           	 	}
-				
+					if (!blockInput && msg.message == WM_KEYDOWN && g_keyPressCallback) {
+						g_keyPressCallback(msg.wParam);
+					}
 				}
 			}
 
@@ -107,7 +106,7 @@ namespace ImGuiHook {
                  reinterpret_cast<void**>(&CCEGLView_pollEvents));
         hookFunc(GetProcAddress(cocosBase, "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N@Z"), CCEGLView_toggleFullScreen_H,
                  reinterpret_cast<void**>(&CCEGLView_toggleFullScreen));
-        hookFunc(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandleA(0)) + 0x3d130),
+        hookFunc(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandleA(0)) + 0x5B530),
                  reinterpret_cast<void*>(&AppDelegate_applicationWillEnterForeground_H),
                  reinterpret_cast<void**>(&AppDelegate_applicationWillEnterForeground));
     }

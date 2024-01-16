@@ -179,8 +179,8 @@ void RenderUI()
 DWORD WINAPI MainThread(void* lpParam) {
     MH_Initialize();
 
-    std::filesystem::create_directory("gd-hacks");
-    std::filesystem::create_directory("gd-hacks/dlls");
+    std::filesystem::create_directory("gdhacks");
+    std::filesystem::create_directory("gdhacks/dlls");
 
     LoadDll();
     saving::Load();
@@ -202,13 +202,13 @@ DWORD WINAPI MainThread(void* lpParam) {
 
 DWORD WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
 	if (dwReason == DLL_PROCESS_ATTACH) {
-        CreateThread(0, 0, MainThread, 0, 0, 0);
+        CloseHandle(CreateThread(0, 0, &MainThread, 0, 0, 0));
     }
     else if (dwReason == DLL_PROCESS_DETACH) {
         for (HMODULE module : Dlls) {
             FreeLibrary(module);
         }
-        saving::Save();
+      //  saving::Save();
     }
 
 	return TRUE;

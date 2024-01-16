@@ -1,32 +1,29 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "includes.hpp"
 #include "gd.hpp"
-#include <xkeycheck.h>
-
-#define MEMBERBYOFFSET(type, class, offset) *reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(class) + offset)
-#define MBO MEMBERBYOFFSET
 
 namespace CheatHooks
 {
     inline void* lvlEditor = nullptr;
     inline PlayLayer* pl = nullptr;
 
-    inline void(__thiscall* CCScheduler_update)(void*, float);
-    inline void __fastcall CCScheduler_update_H(void* self, int, float dt);
+    inline void(__thiscall* CCScheduler_update)(CCScheduler*, float);
+    inline void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt);
 
-    inline void(__thiscall* GameObject_setVisible)(uint32_t*, bool);
-    inline void __fastcall GameObject_setVisible_H(uint32_t* self, int, bool visible);
+    inline void(__thiscall* GameObject_setVisible)(GameObject*, bool);
+    inline void __fastcall GameObject_setVisible_H(GameObject* self, int, bool visible);
 
-    inline void(__thiscall* GameObject_setOpacity)(uint32_t*, unsigned char);
-    inline void __fastcall GameObject_setOpacity_H(uint32_t* self, int, unsigned char opacity);
+    inline void(__thiscall* GameObject_setOpacity)(GameObject*, unsigned char);
+    inline void __fastcall GameObject_setOpacity_H(GameObject* self, int, unsigned char opacity);
 
-    inline void(__thiscall* GameObject_setGlowColor)(uint32_t*, _ccColor3B const&);
-    inline void __fastcall GameObject_setGlowColor_H(uint32_t* self, int, _ccColor3B const& color);
+    inline void(__thiscall* GameObject_setGlowColor)(GameObject*, _ccColor3B const&);
+    inline void __fastcall GameObject_setGlowColor_H(GameObject* self, int, _ccColor3B const& color);
 
-    inline void(__thiscall* GameObject_setObjectColor)(uint32_t*, _ccColor3B const&);
-    inline void __fastcall GameObject_setObjectColor_H(uint32_t* self, int, _ccColor3B const& color);
+    inline void(__thiscall* GameObject_setObjectColor)(GameObject*, _ccColor3B const&);
+    inline void __fastcall GameObject_setObjectColor_H(GameObject* self, int, _ccColor3B const& color);
 
-    inline void(__thiscall* PlayLayer_updateVisibility)(void*, void*, void*, void*);
-    inline void __fastcall PlayLayer_updateVisibility_H(void* self, int, void* dt, void* unk, void* unk_2);
+    inline void(__thiscall* PlayLayer_updateVisibility)(PlayLayer*, void*, void*, void*);
+    inline void __fastcall PlayLayer_updateVisibility_H(PlayLayer* self, int, void* dt, void* unk, void* unk_2);
 
     inline void(__thiscall* PlayLayer_resetLevel)(PlayLayer*);
     inline void __fastcall PlayLayer_resetLevel_H(PlayLayer* self);
