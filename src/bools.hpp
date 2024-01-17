@@ -9,6 +9,7 @@ struct settings
     float speed = 1.0f;
 
     // labels
+    bool level_name;
     bool author;
     bool level_id;
     bool total_attempts;
@@ -19,8 +20,20 @@ struct settings
     // player
     bool noclip;
     bool unlock_all;
+    bool unlock_all_levels;
     bool no_transition;
     bool no_shaders;
+    bool no_death_effect;
+    bool no_trail;
+    bool no_wave_trail;
+    bool no_camera_move;
+    bool no_camera_zoom;
+    bool rainbow_icons;
+    bool rainbow_color_1;
+    bool rainbow_color_2;
+    bool rainbow_wave_trail;
+    float rainbow_speed;
+    float pastel;
 
     // creator
     bool copy_hack;
@@ -28,12 +41,14 @@ struct settings
     bool custom_object_bypass;
 
     // bypass
-    bool text_bypass;
-    bool treasure_room_bypass;
-    bool scratch_bypass;
-    bool potbor_bypass;
-    bool the_mechanic_bypass;
-    bool diamond_shopkeeper_bypass;
+    bool text;
+    bool treasure;
+    bool scratch;
+    bool potbor;
+    bool the_mechanic;
+    bool diamond_shopkeeper;
+    bool free_shops;
+    bool vault_of_secrets;
 
     // utils
     bool discord_rpc;

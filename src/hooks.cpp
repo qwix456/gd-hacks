@@ -1,11 +1,8 @@
 #include "hooks.hpp"
-#include "hacks.hpp"
-#include "bools.hpp"
-#include "rich.hpp"
 
 extern struct settings hacks_;
 
-namespace CheatHooks {
+namespace hooks {
     void __fastcall CCScheduler_update_H(CCScheduler *self, int, float dt) {
         dt *= hacks_.speed;
         CCScheduler_update(self, dt);
@@ -72,7 +69,7 @@ namespace CheatHooks {
     void __fastcall PlayLayer_resetLevel_H(PlayLayer *self) {
         if (hacks_.discord_rpc) {
             bool isRated = self->m_level()->m_stars() != 0;
-            bool isRobTopLvl = self->m_level()->m_levelID() < 128 || self->m_level()->m_levelID() == 3001;
+            bool isRobTopLvl = self->m_level()->m_levelID() < 5004 && self->m_level()->m_levelID() > 0;
 
             if (self->m_level()->m_levelType() != 2) {
                 state = std::string(self->m_level()->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(self->m_level()->m_levelAuthor().c_str()) + "(" + std::to_string(self->m_level()->m_normal()) + "%)");
@@ -101,7 +98,7 @@ namespace CheatHooks {
     bool __fastcall PlayLayer_init_H(PlayLayer *self, int edx, GJGameLevel *m_level, bool unk, bool unk_2) {
         if (hacks_.discord_rpc) {
             bool isRated = m_level->m_stars() != 0;
-            bool isRobTopLvl = m_level->m_levelID() < 128 || m_level->m_levelID() == 3001;
+            bool isRobTopLvl = m_level->m_levelID() < 5004 && m_level->m_levelID() > 0;
 
             if (m_level->m_levelType() != 2) {
                 state = std::string(m_level->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(m_level->m_levelAuthor().c_str()) + "(" + std::to_string(m_level->m_normal()) + "%)");
@@ -149,6 +146,14 @@ namespace CheatHooks {
         return LevelInfoLayer_init(self, m_level, unk);
     }
 
+    bool __fastcall LevelSelectLayer_init_H(void *self, void* unk, int lvl)
+    {
+        if (hacks_.discord_rpc) {
+            rich::updateDiscordRP("Browsing Menu", "Select RobTop Levels");
+        }
+        return LevelSelectLayer_init(self, lvl);
+    }
+
     void __fastcall StartPosObject_init_H(void *self, void *unk) {
         startPosObjects.push_back((float*)self);
         startPosIndex = startPosObjects.size() - 1;
@@ -156,6 +161,24 @@ namespace CheatHooks {
     }
 
     void __fastcall GJBaseGameLayer_update_H(PlayLayer *self, int edx, float dt) {
+        if (hacks_.rainbow_icons) {
+            float r, g, b;
+            ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks_.rainbow_speed, hacks_.pastel, 1, r, g, b);
+            ccColor3B color = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
+
+            if (hacks_.rainbow_color_1) {
+                self->m_pPlayer1()->setColor(color);
+                self->m_pPlayer2()->setColor(color);
+            }
+            if (hacks_.rainbow_color_2) {
+                self->m_pPlayer1()->setSecondColor(color);
+                self->m_pPlayer2()->setSecondColor(color);
+            }
+            if (hacks_.rainbow_wave_trail) {
+                reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1()->m_waveTrail())->setColor(color);
+			    reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color);
+            }
+        }
         GJBaseGameLayer_update(self, dt);
     }
 
@@ -224,6 +247,7 @@ namespace CheatHooks {
         MH_CreateHook((void*)(hacks::base + 0x1415F0), GameObject_setGlowColor_H, (void**)&GameObject_setGlowColor);
         MH_CreateHook((void*)(hacks::base + 0x141300), GameObject_setObjectColor_H, (void**)&GameObject_setObjectColor);
         MH_CreateHook((void*)(hacks::base + 0x194490), GJBaseGameLayer_updateLevelColors_H, (void**)&GJBaseGameLayer_updateLevelColors);
+        MH_CreateHook((void*)(hacks::base + 0x267D00), LevelSelectLayer_init_H, (void**)&LevelSelectLayer_init);
         GJBaseGameLayer_setStartPosObject = (decltype(GJBaseGameLayer_setStartPosObject))(hacks::base + 0x199E90);
         MH_CreateHook((void*)(GetProcAddress((HMODULE)(hacks::cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, (void**)(&CCScheduler_update));
     }

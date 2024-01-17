@@ -3,11 +3,13 @@
 #include <Windows.h>
 #include <vector>
 #include <commdlg.h>
+#include <fstream>
 #include <filesystem>
 
 static std::vector<HMODULE> Dlls;
 static int loadedDlls;
 static bool loadDll = false;
+static HWND g_hWnd = FindWindow(nullptr, "Geometry Dash");
 
 static void WriteBytes(uintptr_t address, std::vector<uint8_t> bytes)
 {
@@ -71,15 +73,13 @@ static const char* OpenDialogDLL(HWND hwnd) {
 }
 
 static void LoadDll() {
-    std::string dllDirectory = "gd-hacks/dlls";
-    for (auto& entry : std::filesystem::directory_iterator(dllDirectory)) {
+    for (auto& entry : std::filesystem::directory_iterator("gdhacks/dlls")) {
         if (entry.is_regular_file() && entry.path().extension() == ".dll") {
-            std::string dllPath = entry.path().generic_string();
-            HMODULE module = LoadLibraryA(dllPath.c_str());
+            HMODULE module = LoadLibraryA(entry.path().generic_string().c_str());
             if (module != nullptr) {
                 Dlls.push_back(module);
                 loadedDlls++;
             }
         }
     }
-}
+}   

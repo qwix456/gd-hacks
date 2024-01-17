@@ -1,10 +1,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "includes.hpp"
 #include "gd.hpp"
+#include "hacks.hpp"
+#include "bools.hpp"
+#include "rich.hpp"
 
-namespace CheatHooks
+namespace hooks
 {
-    inline void* lvlEditor = nullptr;
     inline PlayLayer* pl = nullptr;
 
     inline void(__thiscall* CCScheduler_update)(CCScheduler*, float);
@@ -55,13 +57,13 @@ namespace CheatHooks
     inline bool(__thiscall* LevelInfoLayer_init)(LevelInfoLayer*, GJGameLevel*, bool);
     inline bool __fastcall LevelInfoLayer_init_H(LevelInfoLayer* self, int edx, GJGameLevel* m_level, bool unk);
 
-    inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
+    inline bool(__thiscall* LevelSelectLayer_init)(void*, int);
+    inline bool __fastcall LevelSelectLayer_init_H(void* self, void* unk, int lvl);
 
-    void UpdatePositions(int index);
+    inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
 
     void handleKeyPress(int key);
     void switchStartPos(bool dir);
-    void setAlternateKeys(bool alt);
 
     inline std::vector<float*> startPosObjects;
     inline int startPosIndex = -1;
@@ -70,6 +72,7 @@ namespace CheatHooks
     inline std::string state;
 
     void init();
+    
     void console();
     void print(std::string text);
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include "utils.hpp"
+#include <map>
 
 namespace hacks
 {
@@ -15,7 +16,7 @@ namespace hacks
             WriteBytes(base + 0x13EFA1, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
         }
         else {
-            WriteBytes(base + 0x13E180, {0x88, 0x87, 0x62, 0x04, 0x00, 0x00});
+            WriteBytes(base + 0x13EFA1, {0x88, 0x87, 0x62, 0x04, 0x00, 0x00});
         }
     }
     
@@ -41,6 +42,16 @@ namespace hacks
         }
     }
 
+    static void unlock_all_levels(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x26C113, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x26C113, {0x7E});
+        }
+    }
+
     static void no_transition(bool active)
     {
         if (active) {
@@ -61,13 +72,63 @@ namespace hacks
         }
     }
 
+    static void no_death_effect(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2D1C12, {0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else {
+            WriteBytes(base + 0x2D1C12, {0xE8, 0x59, 0x88, 0xFE, 0xFF});
+        }
+    }
+
+    static void no_trail(bool active)
+    {
+        if (active) {
+            WriteBytes(cocos_base + 0xB1010, {0x0F, 0x85});
+        }
+        else {
+            WriteBytes(cocos_base + 0xB1010, {0x0F, 0x84});
+        }
+    }
+
+    static void no_wave_trail(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x2D8A0E, {0x0F, 0x84});
+        }
+        else {
+            WriteBytes(base + 0x2D8A0E, {0x0F, 0x85});
+        }
+    }
+
+    static void no_camera_move(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x3B2B40, {0xC2, 0x0C, 0x00});
+        }
+        else {
+            WriteBytes(base + 0x3B2B40, {0x55, 0x8B, 0xEC});
+        }
+    }
+
+    static void no_camera_zoom(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x39DBE4, {0xEB, 0x44, 0x90, 0x90, 0x90, 0x90});
+        }
+        else {
+            WriteBytes(base + 0x39DBE4, {0xFF, 0xB7, 0xE0, 0x05, 0x00, 0x00});
+        }
+    }
+
     static void copy_hack(bool active)
     {
         if (active) {
-            WriteBytes(base + 0x25296C, {0x0F, 0x85});
+            WriteBytes(base + 0x25292E, {0xE9, 0x37, 0x01, 0x00});
         }
         else {
-            WriteBytes(base + 0x25296C, {0x0F, 0x84});
+            WriteBytes(base + 0x25292E, {0x0F, 0x84, 0x36, 0x01, 0x00});
         }
     }
 
@@ -156,6 +217,42 @@ namespace hacks
         }
         else {
             WriteBytes(base + 0x2FE626, {0x75});
+        }
+    }
+
+    static void vault_of_secrets(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x6FEB4, {0x90, 0x90, 0x90});
+            WriteBytes(base + 0x6FF41, {0x0F, 0x84});
+            WriteBytes(base + 0x70E51, {0x90, 0x90});
+            WriteBytes(base + 0x306E7C, {0x90, 0x90});
+            WriteBytes(base + 0x30C39F, {0x0F, 0x84});
+            WriteBytes(base + 0x30C547, {0x0F, 0x84});
+            WriteBytes(base + 0x30C6F3, {0x0F, 0x84});
+        }
+        else {
+            WriteBytes(base + 0x6FEB4, {0x0F, 0x44, 0xC2});
+            WriteBytes(base + 0x6FF41, {0x0F, 0x85});
+            WriteBytes(base + 0x70E51, {0x74, 0x4A});
+            WriteBytes(base + 0x306E7C, {0x74, 0x4A});
+            WriteBytes(base + 0x30C39F, {0x0F, 0x85});
+            WriteBytes(base + 0x30C547, {0x0F, 0x85});
+            WriteBytes(base + 0x30C6F3, {0x0F, 0x85});
+        }
+    }
+
+    static void free_shops(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x21B3A6, {0xEB});
+            WriteBytes(base + 0x16A199, {0x90, 0x90});
+            WriteBytes(base + 0x16A195, {0x90, 0x90});
+        }
+        else {
+            WriteBytes(base + 0x21B3A6, {0x74});
+            WriteBytes(base + 0x16A199, {0xEB, 0x7B});
+            WriteBytes(base + 0x16A195, {0x7D, 0x04});
         }
     }
 } // namespace name

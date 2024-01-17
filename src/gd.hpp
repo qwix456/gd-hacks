@@ -1,6 +1,9 @@
 #pragma once
 
 #include "includes.hpp"
+#include <cocos2d.h>
+
+using namespace cocos2d;
 
 static const auto base = (uintptr_t)(GetModuleHandleA(0));
 
@@ -26,30 +29,46 @@ public:
     }
 };
 
-class PlayerObject : public cocos2d::CCSprite
+class AnimatedSpriteDelegate
+{
+public:
+};
+
+class HardStreak : cocos2d::CCDrawNode
+{
+public:
+
+};
+
+class PlayerObject : public GameObject, public AnimatedSpriteDelegate
 {
 public:
     auto m_gravity() {
         return from<float>(this, 0x934);
+    }
+
+    auto m_waveTrail() {
+        return from<HardStreak*>(this, 0x628);
+    }
+
+    void setSecondColor(_ccColor3B const& color) {
+        reinterpret_cast<void(__thiscall*)(PlayerObject*, _ccColor3B const&)>(base + 0x2D65A0)(this, color);
     }
 };
 
 class MenuLayer : public cocos2d::CCLayer
 {
 public:
-    
 };
 
 class CreatorLayer : public cocos2d::CCLayer
 {
 public:
-    
 };
 
 class LevelInfoLayer : public cocos2d::CCLayer
 {
 public:
-
 };
 
 enum GJDifficulty {
@@ -151,6 +170,14 @@ inline std::string convertRobTopLevelToAssetKey(int lvlID) {
 			return "insane"; // Fingerdash
 		case 22:
 			return "insane"; // Dash
+        case 5001:
+            return "hard"; // The Tower
+        case 5002:
+            return "harder"; // The Sewers
+        case 5003:
+            return "harder"; // The Cellar
+        case 5004:
+            return "harder"; // The Secret Hollow
 		case 3001:
 			return "hard"; // The Challenge
 	}
@@ -162,6 +189,10 @@ class GJGameLevel : public cocos2d::CCNode
 public:
     auto m_levelAuthor() {
         return from<std::string>(this, 0x160);
+    }
+
+    auto m_lvlLength() {
+        return from<int>(this, 0x260);
     }
 
     auto m_levelName() {
@@ -304,6 +335,18 @@ public:
         return from<int>(this, 0x218);
     }
 
+    auto m_coins1() {
+        return from<int>(this, 0x314);
+    }
+
+    auto m_coins2() {
+        return from<int>(this, 0x318);
+    }
+
+    auto m_coins() {
+        return m_coins1() - m_coins2();
+    }
+
     GJDifficulty getAverageDifficulty() {
         return reinterpret_cast<GJDifficulty(__thiscall*)(
             GJGameLevel*
@@ -322,7 +365,7 @@ inline std::string getAssetKey(GJGameLevel* m_level) {
     if (stars == 10) {
         return convertGJDifficultyDemonToAssetKey(m_level->m_demonDiff());   
     }
-    if (m_level->m_levelID() < 128 || m_level->m_levelID() == 3001) {
+    if (m_level->m_levelID() < 5004 && m_level->m_levelID() > 0) {
         return convertRobTopLevelToAssetKey(m_level->m_levelID());
     }
 
