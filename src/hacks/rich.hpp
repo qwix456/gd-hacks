@@ -3,6 +3,7 @@
 #include <discord_register.h>
 #include <discord_rpc.h>
 #include <string>
+#include "gd.hpp"
 
 static const char* APPLICATION_ID = "1178492879627366472";
 

@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 #include "utils.hpp"
+#include "gd.hpp"
 #include <map>
+
+using namespace utils;
 
 namespace hacks
 {
-    static auto base = (uintptr_t)(GetModuleHandleA(0));
-    static auto cocos_base = (uintptr_t)(GetModuleHandleA("libcocos2d.dll"));
-
     static void layout_mode(bool active)
     {
         if (active) {
@@ -92,6 +92,26 @@ namespace hacks
         }
     }
 
+    static void trail_always_off(bool active)
+    {
+        if (active) {
+            WriteBytes(cocos_base + 0xB11DC, {0xE9, 0x69, 0x02, 0x00, 0x00, 0x90});
+        }
+        else {
+            WriteBytes(cocos_base + 0xB11DC, {0x0F, 0x84, 0x68, 0x02, 0x00, 0x00});
+        }
+    }
+
+    static void trail_always_on(bool active)
+    {
+        if (active) {
+            WriteBytes(cocos_base + 0xB11DC, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else {
+            WriteBytes(cocos_base + 0xB11DC, {0x0F, 0x84, 0x68, 0x02, 0x00, 0x00});
+        }
+    }
+
     static void no_wave_trail(bool active)
     {
         if (active) {
@@ -119,6 +139,16 @@ namespace hacks
         }
         else {
             WriteBytes(base + 0x39DBE4, {0xFF, 0xB7, 0xE0, 0x05, 0x00, 0x00});
+        }
+    }
+
+    static void no_particles(bool active)
+    {
+        if (active) {
+            WriteBytes(cocos_base + 0xBD52A, {0x0F, 0x85});
+        }
+        else {
+            WriteBytes(cocos_base + 0xBD52A, {0x0F, 0x84});
         }
     }
 
@@ -180,42 +210,18 @@ namespace hacks
         }
     }
 
-    static void scratch_bypass(bool active)
+    static void unlock_shops(bool active)
     {
         if (active) {
             WriteBytes(base + 0x2FE5BA, {0xEB});
-        }
-        else {
-            WriteBytes(base + 0x2FE5BA, {0x75});
-        }
-    }
-
-    static void potbor_bypass(bool active)
-    {
-        if (active) {
             WriteBytes(base + 0x2FE5DE, {0xEB});
-        }
-        else {
-            WriteBytes(base + 0x2FE5DE, {0x75});
-        }
-    }
-
-    static void the_mechanic_bypass(bool active)
-    {
-        if (active) {
             WriteBytes(base + 0x2FE602, {0xEB});
-        }
-        else {
-            WriteBytes(base + 0x2FE602, {0x75});
-        }
-    }
-
-    static void diamond_shopkeeper_bypass(bool active)
-    {
-        if (active) {
             WriteBytes(base + 0x2FE626, {0xEB});
         }
         else {
+            WriteBytes(base + 0x2FE5BA, {0x75});
+            WriteBytes(base + 0x2FE5DE, {0x75});
+            WriteBytes(base + 0x2FE602, {0x75});
             WriteBytes(base + 0x2FE626, {0x75});
         }
     }
@@ -253,6 +259,20 @@ namespace hacks
             WriteBytes(base + 0x21B3A6, {0x74});
             WriteBytes(base + 0x16A199, {0xEB, 0x7B});
             WriteBytes(base + 0x16A195, {0x7D, 0x04});
+        }
+    }
+
+    static void slider_limit(bool active)
+    {
+        if (active) {
+            WriteBytes(base + 0x4D04A, {0xEB});
+            WriteBytes(base + 0x4D078, {0xEB});
+            WriteBytes(base + 0xDF1E8, {0xEB});
+        }
+        else {
+            WriteBytes(base + 0x4D04A, {0x76});
+            WriteBytes(base + 0x4D078, {0x76});
+            WriteBytes(base + 0xDF1E8, {0x75});
         }
     }
 } // namespace name

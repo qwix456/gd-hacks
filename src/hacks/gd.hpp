@@ -1,11 +1,11 @@
 #pragma once
 
-#include "includes.hpp"
-#include <cocos2d.h>
+#include "../includes.hpp"
 
 using namespace cocos2d;
 
 static const auto base = (uintptr_t)(GetModuleHandleA(0));
+static auto cocos_base = (uintptr_t)(GetModuleHandleA("libcocos2d.dll"));
 
 template <class R, class T>
 R& from(T base, intptr_t offset) {
@@ -45,6 +45,10 @@ class PlayerObject : public GameObject, public AnimatedSpriteDelegate
 public:
     auto m_gravity() {
         return from<float>(this, 0x934);
+    }
+
+    auto m_isHolding() {
+        return from<bool>(this, 0x775);
     }
 
     auto m_waveTrail() {
@@ -192,7 +196,11 @@ public:
     }
 
     auto m_lvlLength() {
-        return from<int>(this, 0x260);
+        return from<int>(this, 0x2D0);
+    }
+
+    bool isPlatformer() {
+        return m_lvlLength() == 5;
     }
 
     auto m_levelName() {
@@ -419,9 +427,21 @@ public:
         return from<cocos2d::CCDrawNode*>(this, 0x2D70);
     }
 
+    auto m_isDead() {
+        return from<bool>(this, 0x2AC0);
+    }
+
+    auto m_isDeadFalse() {
+        return from<bool>(this, 0x2AC0) = false;
+    }
+
     auto m_pPlayer1() {
         return from<PlayerObject*>(this, 0x878);
     }
+
+    // auto m_isPracticeMode() {
+    //     return from<bool>(this, 0x2A7c);
+    // }
 
     auto m_pPlayer2() {
         return from<PlayerObject*>(this, 0x87C);
@@ -478,6 +498,20 @@ public:
     }
 };
 
+class GJAccountManager : public cocos2d::CCNode
+{
+public:
+    static GJAccountManager* sharedState() {
+        return reinterpret_cast<GJAccountManager*(__stdcall*)()>(
+            base + 0x18A510
+        )();
+    }
+
+    auto m_nPlayerName() {
+        return from<std::string>(this, 0x10C);
+    }
+};
+
 class GameManager
 {
 public:
@@ -489,6 +523,10 @@ public:
         return reinterpret_cast<GameManager* (__stdcall*)()>(
             base + 0x121540
         )();
+    }
+
+    auto m_nPlayerName() {
+        return from<std::string>(this, 0x1D0);
     }
 
     bool getGameVariable(const char* key) {

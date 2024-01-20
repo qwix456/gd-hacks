@@ -1,11 +1,26 @@
 #include "hooks.hpp"
+#include "other/bot.hpp"
 
 extern struct settings hacks_;
 
 namespace hooks {
     void __fastcall CCScheduler_update_H(CCScheduler *self, int, float dt) {
-        dt *= hacks_.speed;
-        CCScheduler_update(self, dt);
+        if (!hacks_.fps_bypass)
+            return CCScheduler_update(self, dt);
+
+        if (hacks_.speedhack)
+            dt *= hacks_.speed;
+        
+        const float newdt = 1.f / hacks_.fps / self->getTimeScale();
+        disable_render = true;
+
+        const int times = min(static_cast<int>((dt + left_over) / newdt), 100);
+        for (int i = 0; i < times; ++i) {
+            if (i == times - 1)
+                disable_render = false;
+            CCScheduler_update(self, newdt);
+        }
+        left_over += dt - newdt * times;
     }
 
     void __fastcall GameObject_setVisible_H(GameObject *self, int, bool visible) {
@@ -67,21 +82,49 @@ namespace hooks {
     }
 
     void __fastcall PlayLayer_resetLevel_H(PlayLayer *self) {
+        int lastCheckpointFrame = (bot::checkpoints.empty()) ? 0 : bot::checkpoints.back().frame;
+        if (bot::m_mode == 2) {
+            GJBaseGameLayer_handleButton(self, 0, 0, true);
+            GJBaseGameLayer_handleButton(self, 0, 0, false);
+        }
         if (hacks_.discord_rpc) {
             bool isRated = self->m_level()->m_stars() != 0;
             bool isRobTopLvl = self->m_level()->m_levelID() < 5004 && self->m_level()->m_levelID() > 0;
+            bool isPlatformerLvl = self->m_level()->isPlatformer();
 
             if (self->m_level()->m_levelType() != 2) {
-                state = std::string(self->m_level()->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(self->m_level()->m_levelAuthor().c_str()) + "(" + std::to_string(self->m_level()->m_normal()) + "%)");
+                state = std::string(self->m_level()->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(self->m_level()->m_levelAuthor().c_str()) + " (" + std::to_string(self->m_level()->m_normal()) + "%)");
             }
 
             rich::updateDiscordRP(
-                "Playing Level",
+                (isPlatformerLvl) ? "Playing Platformer Level" : "Playing Level",
                 state,
                 getAssetKey(self->m_level()),
                 (isRated) ? "Rated" : "Not Rated",
                 true
             );
+        }
+
+        if (bot::checkpoints.size() != 0 && bot::replay.size() != 0) {
+            if (hacks_.checkpoint_fix) {
+                self->m_pPlayer1()->setPositionX(bot::checkpoints.back().P1.xpos);
+                self->m_pPlayer2()->setPositionX(bot::checkpoints.back().P2.xpos);
+                self->m_pPlayer1()->setPositionY(bot::checkpoints.back().P1.ypos);
+                self->m_pPlayer2()->setPositionY(bot::checkpoints.back().P2.ypos);
+                self->m_pPlayer1()->setRotation(bot::checkpoints.back().P1.rotation);
+                self->m_pPlayer2()->setRotation(bot::checkpoints.back().P2.rotation);
+
+                if (bot::checkpoints.back().P1.buttonPushed) {
+                    GJBaseGameLayer_handleButton(self, 0, 0, true);
+                }
+                if (bot::checkpoints.back().P2.buttonPushed) {
+                    GJBaseGameLayer_handleButton(self, 0, 0, false);
+                }
+            }
+        }
+
+        while (!bot::replay.empty() && bot::replay.back().frame > lastCheckpointFrame) {
+            bot::replay.pop_back();
         }
         
         PlayLayer_resetLevel(self);
@@ -91,44 +134,26 @@ namespace hooks {
         pl = self;
         startPosObjects = {};
         startPosIndex = 0;
+        bot::m_frame = 0;
+        bot::checkpoints.clear();
 
         GJBaseGameLayer_init(self);
-    }
-
-    bool __fastcall PlayLayer_init_H(PlayLayer *self, int edx, GJGameLevel *m_level, bool unk, bool unk_2) {
-        if (hacks_.discord_rpc) {
-            bool isRated = m_level->m_stars() != 0;
-            bool isRobTopLvl = m_level->m_levelID() < 5004 && m_level->m_levelID() > 0;
-
-            if (m_level->m_levelType() != 2) {
-                state = std::string(m_level->m_levelName().c_str()) + " by " + ((isRobTopLvl) ? "RobTop" : std::string(m_level->m_levelAuthor().c_str()) + "(" + std::to_string(m_level->m_normal()) + "%)");
-            }
-
-            rich::updateDiscordRP(
-                "Playing Level",
-                state,
-                getAssetKey(m_level),
-                (isRated) ? "Rated" : "Not Rated",
-                true
-            );
-        }
-
-        return PlayLayer_init(self, m_level, unk, unk_2);
     }
 
     bool __fastcall MenuLayer_init_H(MenuLayer* self, void* unk) {
         if (hacks_.discord_rpc) {
             rich::initDiscordRP();
-            rich::updateDiscordRP("Browsing Menu");
+            rich::updateDiscordRP("Browsing Menus");
         }
-        
+
         return MenuLayer_init(self);
     }
 
     bool __fastcall CreatorLayer_init_H(CreatorLayer* self, void* unk) {
         if (hacks_.discord_rpc) {
-            rich::updateDiscordRP("Browsing Menu", "Creator Tab");
+            rich::updateDiscordRP("Browsing Menus", "Creator Tab");
         }
+
         return CreatorLayer_init(self);
     }
 
@@ -146,15 +171,70 @@ namespace hooks {
         return LevelInfoLayer_init(self, m_level, unk);
     }
 
+    bool __fastcall GJBaseGameLayer_handleButton_H(PlayLayer *self, uintptr_t, int push, int button, BOOL is_player1)
+    {
+        if (bot::m_mode == 1 && bot::get_frame(self) != 0 && push) {
+            if (is_player1) {
+                bot::p1ButtonPushed = true;
+            } else {
+                bot::p2ButtonPushed = true;
+            }
+            bot::Click click;
+            click.frame = bot::get_frame(self);
+            click.action = true;
+            click.push = push;
+            click.button = button;
+            click.fps = hacks_.fps;
+            click.xpos = self->m_pPlayer1()->getPositionX();
+            click.player = is_player1;
+            bot::replay.push_back(click);
+        }
+        if (bot::m_mode == 1 && bot::get_frame(self) != 0 && !push) {
+            if (is_player1) {
+                bot::p1ButtonPushed = false;
+            } else {
+                bot::p2ButtonPushed = false;
+            }
+            bot::Click click;
+            click.frame = bot::get_frame(self);
+            click.action = false;
+            click.push = push;
+            click.button = button;
+            click.fps = hacks_.fps;
+            click.xpos = self->m_pPlayer1()->getPositionX();
+            click.player = is_player1;
+            bot::replay.push_back(click);
+        }
+        return GJBaseGameLayer_handleButton(self, push, button, is_player1);
+    }
+
+    int __fastcall PlayLayer_destroyPlayer_H(PlayLayer *self, void *, PlayerObject *player, GameObject *obj)
+    {
+        int result = 0;
+
+        if (player == self->m_pPlayer1() && hacks_.noclip_p1)
+        {
+            return result;
+        }
+        if (player == self->m_pPlayer2() && hacks_.noclip_p2)
+        {
+            return result;
+        }
+
+        result = PlayLayer_destroyPlayer(self, player, obj);
+        return result;
+    }
+
     bool __fastcall LevelSelectLayer_init_H(void *self, void* unk, int lvl)
     {
         if (hacks_.discord_rpc) {
-            rich::updateDiscordRP("Browsing Menu", "Select RobTop Levels");
+            rich::updateDiscordRP("Browsing Menus", "Select RobTop Levels");
         }
         return LevelSelectLayer_init(self, lvl);
     }
 
-    void __fastcall StartPosObject_init_H(void *self, void *unk) {
+    void __fastcall StartPosObject_init_H(void *self, void *unk)
+    {
         startPosObjects.push_back((float*)self);
         startPosIndex = startPosObjects.size() - 1;
         StartPosObject_init(self);
@@ -179,6 +259,15 @@ namespace hooks {
 			    reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color);
             }
         }
+
+        if (bot::m_mode == 2 && !bot::replay.empty()) {
+            for (size_t i = 0; i < bot::replay.size(); i++) {
+                 if (bot::replay[i].frame == bot::get_frame(self)) {
+                    GJBaseGameLayer_handleButton(self, bot::replay[i].push, bot::replay[i].button, bot::replay[i].player);
+                }
+            }
+        }
+
         GJBaseGameLayer_update(self, dt);
     }
 
@@ -231,25 +320,69 @@ namespace hooks {
         GJBaseGameLayer_updateLevelColors(self);
     }
 
-    void init() {
-        MH_CreateHook((void*)(hacks::base + 0x27B450), MenuLayer_init_H, (void**)&MenuLayer_init);
-        MH_CreateHook((void*)(hacks::base + 0x6F550), CreatorLayer_init_H, (void**)&CreatorLayer_init);
-        MH_CreateHook((void*)(hacks::base + 0x2516A0), LevelInfoLayer_init_H, (void**)&LevelInfoLayer_init);
-        MH_CreateHook((void*)(hacks::base + 0x13B890), GameObject_setVisible_H, (void**)&GameObject_setVisible);
-        MH_CreateHook((void*)(hacks::base + 0x13B490), GameObject_setOpacity_H, (void**)&GameObject_setOpacity);
-        MH_CreateHook((void*)(hacks::base + 0x2E2BF0), PlayLayer_updateVisibility_H, (void**)&PlayLayer_updateVisibility);
-        MH_CreateHook((void*)(hacks::base + 0x3A7910), StartPosObject_init_H, (void**)&StartPosObject_init);
-        MH_CreateHook((void*)(hacks::base + 0x190290), GJBaseGameLayer_init_H, (void**)&GJBaseGameLayer_init);
-        MH_CreateHook((void*)(hacks::base + 0x2DC4A0), PlayLayer_init_H, (void**)&PlayLayer_init);
-        MH_CreateHook((void*)(hacks::base + 0x1BB780), GJBaseGameLayer_update_H, (void**)&GJBaseGameLayer_update);
-        MH_CreateHook((void*)(hacks::base + 0x2EA130), PlayLayer_resetLevel_H, (void**)&PlayLayer_resetLevel);
-        MH_CreateHook((void*)(hacks::base + 0x2DB810), PlayLayer_destructor_H, (void**)&PlayLayer_destructor);
-        MH_CreateHook((void*)(hacks::base + 0x1415F0), GameObject_setGlowColor_H, (void**)&GameObject_setGlowColor);
-        MH_CreateHook((void*)(hacks::base + 0x141300), GameObject_setObjectColor_H, (void**)&GameObject_setObjectColor);
-        MH_CreateHook((void*)(hacks::base + 0x194490), GJBaseGameLayer_updateLevelColors_H, (void**)&GJBaseGameLayer_updateLevelColors);
-        MH_CreateHook((void*)(hacks::base + 0x267D00), LevelSelectLayer_init_H, (void**)&LevelSelectLayer_init);
-        GJBaseGameLayer_setStartPosObject = (decltype(GJBaseGameLayer_setStartPosObject))(hacks::base + 0x199E90);
-        MH_CreateHook((void*)(GetProcAddress((HMODULE)(hacks::cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, (void**)(&CCScheduler_update));
+    void __fastcall PlayLayer_onQuit_H(PlayLayer *self)
+    {
+        bot::m_frame = 0;
+        bot::replay.clear();
+        bot::checkpoints.clear();
+        PlayLayer_onQuit(self);
+    }
+
+    void __fastcall PlayLayer_createCheckpoint_H(PlayLayer *self)
+    {
+        bot::Checkpoint checkpoint;
+        checkpoint.frame = bot::get_frame(self);
+        if (hacks_.checkpoint_fix) {
+            checkpoint.P1.xpos = self->m_pPlayer1()->getPositionX();
+            checkpoint.P2.xpos = self->m_pPlayer2()->getPositionX();
+            checkpoint.P1.ypos = self->m_pPlayer1()->getPositionY();
+            checkpoint.P2.ypos = self->m_pPlayer2()->getPositionY();
+            checkpoint.P1.buttonPushed = bot::p1ButtonPushed;
+            checkpoint.P2.buttonPushed = bot::p2ButtonPushed;
+        }
+
+        bot::checkpoints.push_back(checkpoint);
+        PlayLayer_createCheckpoint(self);
+    }
+
+    void __fastcall PlayLayer_removeCheckpoint_H(PlayLayer *self, void *, bool unk)
+    {
+        if (bot::checkpoints.size() > 0) {
+            bot::checkpoints.pop_back();
+        }
+        PlayLayer_removeCheckpoint(self, unk);
+    }
+
+    void setFPS()
+    {
+        interval = 1.0f / hacks_.fps;
+        target_fps = hacks_.fps;
+    }
+
+    void init()
+    {
+        MH_CreateHook((void*)(base + 0x27B450), MenuLayer_init_H, (void**)&MenuLayer_init);
+        MH_CreateHook((void*)(base + 0x6F550), CreatorLayer_init_H, (void**)&CreatorLayer_init);
+        MH_CreateHook((void*)(base + 0x2516A0), LevelInfoLayer_init_H, (void**)&LevelInfoLayer_init);
+        MH_CreateHook((void*)(base + 0x13B890), GameObject_setVisible_H, (void**)&GameObject_setVisible);
+        MH_CreateHook((void*)(base + 0x13B490), GameObject_setOpacity_H, (void**)&GameObject_setOpacity);
+        MH_CreateHook((void*)(base + 0x2E2BF0), PlayLayer_updateVisibility_H, (void**)&PlayLayer_updateVisibility);
+        MH_CreateHook((void*)(base + 0x3A7910), StartPosObject_init_H, (void**)&StartPosObject_init);
+        MH_CreateHook((void*)(base + 0x190290), GJBaseGameLayer_init_H, (void**)&GJBaseGameLayer_init);
+        MH_CreateHook((void*)(base + 0x1BB780), GJBaseGameLayer_update_H, (void**)&GJBaseGameLayer_update);
+        MH_CreateHook((void*)(base + 0x2EA130), PlayLayer_resetLevel_H, (void**)&PlayLayer_resetLevel);
+        MH_CreateHook((void*)(base + 0x2DB810), PlayLayer_destructor_H, (void**)&PlayLayer_destructor);
+        MH_CreateHook((void*)(base + 0x1415F0), GameObject_setGlowColor_H, (void**)&GameObject_setGlowColor);
+        MH_CreateHook((void*)(base + 0x141300), GameObject_setObjectColor_H, (void**)&GameObject_setObjectColor);
+        MH_CreateHook((void*)(base + 0x194490), GJBaseGameLayer_updateLevelColors_H, (void**)&GJBaseGameLayer_updateLevelColors);
+        MH_CreateHook((void*)(base + 0x267D00), LevelSelectLayer_init_H, (void**)&LevelSelectLayer_init);
+        MH_CreateHook((void*)(base + 0x1B69F0), GJBaseGameLayer_handleButton_H, (void**)&GJBaseGameLayer_handleButton);
+        MH_CreateHook((void*)(base + 0x2EB480), PlayLayer_onQuit_H, (void**)&PlayLayer_onQuit);
+        MH_CreateHook((void*)(base + 0x2E76E0), PlayLayer_createCheckpoint_H, (void**)&PlayLayer_createCheckpoint);
+        MH_CreateHook((void*)(base + 0x2E8D70), PlayLayer_removeCheckpoint_H, (void**)&PlayLayer_removeCheckpoint);
+        MH_CreateHook((void*)(base + 0x2E6730), PlayLayer_destroyPlayer_H, (void**)&PlayLayer_destroyPlayer);
+        GJBaseGameLayer_setStartPosObject = (decltype(GJBaseGameLayer_setStartPosObject))(base + 0x199E90);
+        MH_CreateHook((void*)(GetProcAddress((HMODULE)(cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, (void**)(&CCScheduler_update));
     }
 
     void console() {

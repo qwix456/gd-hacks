@@ -1,9 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "includes.hpp"
-#include "gd.hpp"
-#include "hacks.hpp"
-#include "bools.hpp"
-#include "rich.hpp"
+#include "hacks/gd.hpp"
+#include "hacks/hacks.hpp"
+#include "hacks/bools.hpp"
+#include "hacks/rich.hpp"
+#include "gui.hpp"
 
 namespace hooks
 {
@@ -48,6 +49,15 @@ namespace hooks
     inline void(__thiscall* GJBaseGameLayer_updateLevelColors)(PlayLayer*);
     inline void __fastcall GJBaseGameLayer_updateLevelColors_H(PlayLayer* self, void* unk);
 
+    inline void(__thiscall* PlayLayer_onQuit)(PlayLayer*);
+    inline void __fastcall PlayLayer_onQuit_H(PlayLayer* self);
+
+    inline void(__thiscall* PlayLayer_createCheckpoint)(PlayLayer*);
+    inline void __fastcall PlayLayer_createCheckpoint_H(PlayLayer* self);
+
+    inline void(__thiscall* PlayLayer_removeCheckpoint)(PlayLayer*, bool);
+    inline void __fastcall PlayLayer_removeCheckpoint_H(PlayLayer* self, void*, bool unk);
+
     inline bool(__thiscall* MenuLayer_init)(MenuLayer*);
     inline bool __fastcall MenuLayer_init_H(MenuLayer* self, void* unk);
 
@@ -60,6 +70,12 @@ namespace hooks
     inline bool(__thiscall* LevelSelectLayer_init)(void*, int);
     inline bool __fastcall LevelSelectLayer_init_H(void* self, void* unk, int lvl);
 
+    inline bool(__thiscall* GJBaseGameLayer_handleButton)(PlayLayer*, int, int, BOOL);
+    inline bool __fastcall GJBaseGameLayer_handleButton_H(PlayLayer* self, uintptr_t, int push, int button, BOOL is_player1);
+
+    inline int(__thiscall* PlayLayer_destroyPlayer)(PlayLayer*, PlayerObject*, GameObject*);
+    inline int __fastcall PlayLayer_destroyPlayer_H(PlayLayer* self, void*, PlayerObject* player, GameObject* obj);
+
     inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
 
     void handleKeyPress(int key);
@@ -70,6 +86,12 @@ namespace hooks
     inline float tmp[] = {0, 0};
     inline bool altKeys = false;
     inline std::string state;
+    inline float target_fps = 60.f;
+    inline float interval;
+    inline float left_over = 0.f;
+    inline bool disable_render = false;
+
+    void setFPS();
 
     void init();
     

@@ -7,7 +7,7 @@ set(PROJECT gd-hacks)
 project(${PROJECT})
 
 
-file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE SOURCE_FILES src/*.cpp src/*.hpp src/other/*.cpp src/other/*.hpp)
 add_library(${PROJECT} SHARED ${SOURCE_FILES})
 
 target_include_directories(${PROJECT} PRIVATE

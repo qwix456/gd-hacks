@@ -44,6 +44,8 @@ Index of this file:
 
 // System includes
 #include <stdint.h>     // intptr_t
+#include <functional>
+#include <string>
 
 //-------------------------------------------------------------------------
 // Warnings
@@ -792,8 +794,11 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
 
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {
-    float sz = GetFrameHeight();
-    return ArrowButtonEx(str_id, dir, ImVec2(sz, sz), ImGuiButtonFlags_None);
+    float buttonSize = GetFrameHeight();
+    float windowWidth = GetWindowSize().x;
+
+    SameLine(windowWidth - 39);
+    return ArrowButtonEx(str_id, dir, ImVec2(buttonSize, buttonSize), ImGuiButtonFlags_None);
 }
 
 // Button to close a window
@@ -1092,8 +1097,22 @@ bool ImGui::ImageButton(ImTextureID user_texture_id, const ImVec2& size, const I
 }
 #endif // #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
+inline ImU32 to_uint32(const ImVec4 &color)
+{
+    ImU32 u32_color;
+    u32_color = ((ImU32)(color.x * 255.0f + 0.5f) << IM_COL32_R_SHIFT) |
+                ((ImU32)(color.y * 255.0f + 0.5f) << IM_COL32_G_SHIFT) |
+                ((ImU32)(color.z * 255.0f + 0.5f) << IM_COL32_B_SHIFT) |
+                ((ImU32)(color.w * 255.0f + 0.5f) << IM_COL32_A_SHIFT);
+    return u32_color;
+}
+
 bool ImGui::Checkbox(const char* label, bool* v)
 {
+    ImGuiIO& io = ImGui::GetIO();
+    const float cc_sz = 3.0f * io.FontGlobalScale;
+    const float cc_pad = 10.0f;
+
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
@@ -1103,49 +1122,44 @@ bool ImGui::Checkbox(const char* label, bool* v)
     const ImGuiID id = window->GetID(label);
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
-    const float square_sz = GetFrameHeight();
-    const ImVec2 pos = window->DC.CursorPos;
-    const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
-    ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id))
+    const ImRect check_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(label_size.y + style.FramePadding.y * 2, label_size.y + style.FramePadding.y * 2));
+    ItemSize({check_bb.GetWidth(), check_bb.GetHeight() - 3}, style.FramePadding.y);
+
+    ImRect total_bb = check_bb;
+    if (label_size.x > 0)
+        SameLine(0, style.ItemInnerSpacing.x);
+    const ImRect text_bb(window->DC.CursorPos + ImVec2(0, style.FramePadding.y), window->DC.CursorPos + ImVec2(0, style.FramePadding.y) + label_size);
+    if (label_size.x > 0)
     {
-        IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
-        return false;
+        ItemSize({check_bb.GetWidth(), check_bb.GetHeight() - 3}, style.FramePadding.y);
+        total_bb = ImRect(check_bb.Min, ImVec2(text_bb.Max.x - cc_pad * 2.0f * io.FontGlobalScale, check_bb.Max.y));
     }
+
+    if (!ItemAdd(total_bb, id))
+        return false;
 
     bool hovered, held;
     bool pressed = ButtonBehavior(total_bb, id, &hovered, &held);
     if (pressed)
-    {
         *v = !(*v);
-        MarkItemEdited(id);
+    ImVec2 text_pos = text_bb.GetTL();
+    if (hovered)
+    {
+        ImVec2 text_size = text_bb.GetBR();
+        auto fill_color = ImGui::ColorConvertFloat4ToU32(ImVec4(50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f, 1.0f));
+        window->DrawList->AddRectFilled(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Min.x + cc_sz + text_size.x - text_pos.x + cc_pad * 2.0f, check_bb.Max.y), fill_color, style.FrameRounding);
+    }
+    if (*v)
+    {
+        window->DrawList->AddRectFilled(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Min.x + cc_sz, check_bb.Max.y), GetColorU32(ImGuiCol_CheckMark), style.FrameRounding);
+    }
+    else {
+        window->DrawList->AddRectFilled(ImVec2(check_bb.Min.x, check_bb.Min.y), ImVec2(check_bb.Min.x + cc_sz, check_bb.Max.y), ImColor(32, 32, 32), style.FrameRounding);
     }
 
-    const ImRect check_bb(pos, pos + ImVec2(square_sz, square_sz));
-    RenderNavHighlight(total_bb, id);
-    RenderFrame(check_bb.Min, check_bb.Max, GetColorU32((held && hovered) ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg), true, style.FrameRounding);
-    ImU32 check_col = GetColorU32(ImGuiCol_CheckMark);
-    bool mixed_value = (g.LastItemData.InFlags & ImGuiItemFlags_MixedValue) != 0;
-    if (mixed_value)
-    {
-        // Undocumented tristate/mixed/indeterminate checkbox (#2644)
-        // This may seem awkwardly designed because the aim is to make ImGuiItemFlags_MixedValue supported by all widgets (not just checkbox)
-        ImVec2 pad(ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)), ImMax(1.0f, IM_TRUNC(square_sz / 3.6f)));
-        window->DrawList->AddRectFilled(check_bb.Min + pad, check_bb.Max - pad, check_col, style.FrameRounding);
-    }
-    else if (*v)
-    {
-        const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
-        RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
-    }
-
-    ImVec2 label_pos = ImVec2(check_bb.Max.x + style.ItemInnerSpacing.x, check_bb.Min.y + style.FramePadding.y);
-    if (g.LogEnabled)
-        LogRenderedText(&label_pos, mixed_value ? "[~]" : *v ? "[x]" : "[ ]");
     if (label_size.x > 0.0f)
-        RenderText(label_pos, label);
+        RenderText(ImVec2(check_bb.Min.x + cc_sz + cc_pad, text_pos.y), label);
 
-    IMGUI_TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags | ImGuiItemStatusFlags_Checkable | (*v ? ImGuiItemStatusFlags_Checked : 0));
     return pressed;
 }
 

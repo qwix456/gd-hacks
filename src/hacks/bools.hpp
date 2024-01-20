@@ -7,8 +7,10 @@ struct settings
     bool startpos_switcher;
     bool alt_keys;
     float speed = 1.0f;
+    float fps = 60.0f;
 
     // labels
+    bool labels;
     bool level_name;
     bool author;
     bool level_id;
@@ -18,16 +20,20 @@ struct settings
     bool practice_percent;
 
     // player
-    bool noclip;
+    bool noclip_p1;
+    bool noclip_p2;
     bool unlock_all;
     bool unlock_all_levels;
     bool no_transition;
     bool no_shaders;
     bool no_death_effect;
     bool no_trail;
+    bool trail_always_off;
+    bool trail_always_on;
     bool no_wave_trail;
     bool no_camera_move;
     bool no_camera_zoom;
+    bool no_particles;
     bool rainbow_icons;
     bool rainbow_color_1;
     bool rainbow_color_2;
@@ -43,13 +49,19 @@ struct settings
     // bypass
     bool text;
     bool treasure;
-    bool scratch;
-    bool potbor;
-    bool the_mechanic;
-    bool diamond_shopkeeper;
-    bool free_shops;
+    bool unlock_shops;
     bool vault_of_secrets;
+    bool free_shops;
+    bool slider_limit;
 
     // utils
     bool discord_rpc;
+
+    // fps bypass and speedhack
+    bool speedhack;
+    bool fps_bypass;
+
+    // gdbot
+    char replay_name[999];
+    bool checkpoint_fix;
 };

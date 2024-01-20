@@ -14,7 +14,7 @@ void rich::updateDiscordRP(std::string details, std::string state, std::string s
     discordPresence.state = state.c_str();
     discordPresence.largeImageKey = "gd_large";
     discordPresence.startTimestamp = std::time(0);
-    discordPresence.largeImageText = "Playing a Game";
+    discordPresence.largeImageText = GameManager::sharedState()->m_nPlayerName().c_str();
     if (smallImageKey != "") {
         discordPresence.smallImageKey = smallImageKey.c_str();
 		discordPresence.smallImageText = smallImageText.c_str();
