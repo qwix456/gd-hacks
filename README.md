@@ -2,7 +2,7 @@
 
 Geometry Dash Cheat Menu
 
-![Geometry Dash 16 01 2024 0_25_52](https://github.com/qwix456/gd-hacks/assets/104967297/06e91fad-2663-4e42-9b08-f696a329455d)
+![Geometry Dash Screenshot 2024 01 20 - 20 53 43 04](https://github.com/qwix456/gd-hacks/assets/104967297/4b5201ba-f254-4544-bba0-6b446ff75d67)
 
 ## How to Install and Inject
 
