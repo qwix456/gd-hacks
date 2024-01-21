@@ -83,10 +83,12 @@ namespace hooks {
 
     void __fastcall PlayLayer_resetLevel_H(PlayLayer *self) {
         int lastCheckpointFrame = (bot::checkpoints.empty()) ? 0 : bot::checkpoints.back().frame;
+
         if (bot::m_mode == 2) {
             GJBaseGameLayer_handleButton(self, 0, 0, true);
             GJBaseGameLayer_handleButton(self, 0, 0, false);
         }
+
         if (hacks_.discord_rpc) {
             bool isRated = self->m_level()->m_stars() != 0;
             bool isRobTopLvl = self->m_level()->m_levelID() < 5004 && self->m_level()->m_levelID() > 0;
@@ -113,6 +115,16 @@ namespace hooks {
                 self->m_pPlayer2()->setPositionY(bot::checkpoints.back().P2.ypos);
                 self->m_pPlayer1()->setRotation(bot::checkpoints.back().P1.rotation);
                 self->m_pPlayer2()->setRotation(bot::checkpoints.back().P2.rotation);
+                self->m_pPlayer1()->Setm_yAccel(bot::checkpoints.back().P1.yAccel);
+                self->m_pPlayer2()->Setm_yAccel(bot::checkpoints.back().P2.yAccel);
+                self->m_pPlayer1()->Setm_xAccel(bot::checkpoints.back().P1.xAccel);
+                self->m_pPlayer2()->Setm_xAccel(bot::checkpoints.back().P2.xAccel);
+                self->m_pPlayer1()->Setm_isHolding(bot::checkpoints.back().P1.isHolding);
+                self->m_pPlayer2()->Setm_isHolding(bot::checkpoints.back().P2.isHolding);
+                self->m_pPlayer1()->Setm_isSliding(bot::checkpoints.back().P1.isSliding);
+                self->m_pPlayer2()->Setm_isSliding(bot::checkpoints.back().P2.isSliding);
+                self->m_pPlayer1()->Setm_playerSpeed(bot::checkpoints.back().P1.playerSpeed);
+                self->m_pPlayer2()->Setm_playerSpeed(bot::checkpoints.back().P2.playerSpeed);
 
                 if (bot::checkpoints.back().P1.buttonPushed) {
                     GJBaseGameLayer_handleButton(self, 0, 0, true);
@@ -134,9 +146,7 @@ namespace hooks {
         pl = self;
         startPosObjects = {};
         startPosIndex = 0;
-        bot::m_frame = 0;
         bot::checkpoints.clear();
-
         GJBaseGameLayer_init(self);
     }
 
@@ -165,7 +175,7 @@ namespace hooks {
                 "Viewing Level", 
                 std::string(m_level->m_levelName().c_str()) + " by " + std::string(m_level->m_levelAuthor().c_str()),
                 getAssetKey(m_level),
-                (isRated) ? "Rated" : "Not Rated");
+                (isRated) ? "Rated" : "Not Rated", true);
         }
 
         return LevelInfoLayer_init(self, m_level, unk);
@@ -205,6 +215,10 @@ namespace hooks {
             click.player = is_player1;
             bot::replay.push_back(click);
         }
+
+        if (hacks_.ignore_user_input && bot::m_mode == 2)
+            return false;
+
         return GJBaseGameLayer_handleButton(self, push, button, is_player1);
     }
 
@@ -223,6 +237,16 @@ namespace hooks {
 
         result = PlayLayer_destroyPlayer(self, player, obj);
         return result;
+    }
+
+    bool __fastcall LevelEditorLayer_init_H(LevelEditorLayer *self, void *, GJGameLevel *level, bool unk)
+    {
+        if (hacks_.discord_rpc) {
+            rich::updateDiscordRP(
+                "Editing Level", 
+                std::string(level->m_levelName().c_str()) + " by " + std::string(level->m_levelAuthor().c_str()), "", "", true);
+        }
+        return LevelEditorLayer_init(self, level, unk);
     }
 
     bool __fastcall LevelSelectLayer_init_H(void *self, void* unk, int lvl)
@@ -258,6 +282,10 @@ namespace hooks {
                 reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1()->m_waveTrail())->setColor(color);
 			    reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2()->m_waveTrail())->setColor(color);
             }
+        }
+
+        if (self->m_hasComplete()) {
+            rich::updateDiscordRP("Level " + std::string(self->m_level()->m_levelName().c_str()) + " Complete ", "Attempts: " + std::to_string(self->m_attempts()) + " Jumps: " + std::to_string(self->m_jumps()), "", "", true);
         }
 
         if (bot::m_mode == 2 && !bot::replay.empty()) {
@@ -339,6 +367,16 @@ namespace hooks {
             checkpoint.P2.ypos = self->m_pPlayer2()->getPositionY();
             checkpoint.P1.buttonPushed = bot::p1ButtonPushed;
             checkpoint.P2.buttonPushed = bot::p2ButtonPushed;
+            checkpoint.P1.isHolding = self->m_pPlayer1()->m_isHolding();
+            checkpoint.P2.isHolding = self->m_pPlayer2()->m_isHolding();
+            checkpoint.P1.isSliding = self->m_pPlayer1()->m_isSliding();
+            checkpoint.P2.isSliding = self->m_pPlayer2()->m_isSliding();
+            checkpoint.P1.playerSpeed = self->m_pPlayer1()->m_playerSpeed();
+            checkpoint.P2.playerSpeed = self->m_pPlayer2()->m_playerSpeed();
+            checkpoint.P1.yAccel = self->m_pPlayer1()->m_yAccel();
+            checkpoint.P2.yAccel = self->m_pPlayer2()->m_yAccel();
+            checkpoint.P1.xAccel = self->m_pPlayer1()->m_xAccel();
+            checkpoint.P2.xAccel = self->m_pPlayer2()->m_xAccel();
         }
 
         bot::checkpoints.push_back(checkpoint);
@@ -381,6 +419,7 @@ namespace hooks {
         MH_CreateHook((void*)(base + 0x2E76E0), PlayLayer_createCheckpoint_H, (void**)&PlayLayer_createCheckpoint);
         MH_CreateHook((void*)(base + 0x2E8D70), PlayLayer_removeCheckpoint_H, (void**)&PlayLayer_removeCheckpoint);
         MH_CreateHook((void*)(base + 0x2E6730), PlayLayer_destroyPlayer_H, (void**)&PlayLayer_destroyPlayer);
+        MH_CreateHook((void*)(base + 0x239A70), LevelEditorLayer_init_H, (void**)&LevelEditorLayer_init);
         GJBaseGameLayer_setStartPosObject = (decltype(GJBaseGameLayer_setStartPosObject))(base + 0x199E90);
         MH_CreateHook((void*)(GetProcAddress((HMODULE)(cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, (void**)(&CCScheduler_update));
     }

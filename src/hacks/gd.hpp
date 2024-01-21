@@ -7,6 +7,8 @@ using namespace cocos2d;
 static const auto base = (uintptr_t)(GetModuleHandleA(0));
 static auto cocos_base = (uintptr_t)(GetModuleHandleA("libcocos2d.dll"));
 
+#define OFFSET(type, address) *(reinterpret_cast<type*>(address));
+
 template <class R, class T>
 R& from(T base, intptr_t offset) {
 	return *reinterpret_cast<R*>(reinterpret_cast<uintptr_t>(base) + offset);
@@ -21,7 +23,7 @@ class GameObject : public CCSpritePlus
 {
 public:
     auto m_glow() {
-        return from<CCSprite*>(this, 0x280);
+        return from<CCSprite*>(this, 0x3B4);
     }
 
     auto m_objectType() {
@@ -49,6 +51,62 @@ public:
 
     auto m_isHolding() {
         return from<bool>(this, 0x775);
+    }
+
+    auto m_isIdk() {
+        return from<float>(this, 0x874);
+    }
+
+    auto m_playerSize() {
+        return from<float>(this, 0x7E0);
+    }
+
+    auto m_idk() {
+        return from<bool>(this, 0x81A);
+    }
+
+    auto Setm_isHolding(bool hold) {
+        return from<bool>(this, 0x775) = hold;
+    }
+
+    auto m_isSliding() {
+        return from<bool>(this, 0x7FC);
+    }
+
+    auto Setm_isSliding(bool sliding) {
+        return from<bool>(this, 0x7FC) = sliding;
+    }
+
+    auto m_playerSpeed() {
+        return from<float>(this, 0x7E4);
+    }
+
+    auto Setm_playerSpeed(float speed) {
+        return from<float>(this, 0x7E4) = speed;
+    }
+
+    auto m_yAccel() {
+        return from<double>(this, 0x790);
+    }
+
+    auto m_xAccel() {
+        return from<double>(this, 0x630);
+    }
+
+    auto Setm_yAccel(double accel) {
+        return from<double>(this, 0x790) = accel;
+    }
+
+    auto Setm_xAccel(double accel) {
+        return from<double>(this, 0x630) = accel;
+    }
+
+    auto m_position() {
+        return from<CCPoint>(this, 0x64);
+    }
+
+    auto m_wave() {
+        return from<CCMotionStreak*>(this, 0x620);
     }
 
     auto m_waveTrail() {
@@ -355,12 +413,29 @@ public:
         return m_coins1() - m_coins2();
     }
 
+    auto m_songID() {
+        return from<int>(this, 0x218);
+    }
+
     GJDifficulty getAverageDifficulty() {
         return reinterpret_cast<GJDifficulty(__thiscall*)(
             GJGameLevel*
         )>(
             base + 0x114180
         )(this);
+    }
+
+    std::string getAudioFileName() {
+        std::string ret;
+
+        reinterpret_cast<void(__thiscall*)(
+            GJGameLevel*, std::string*
+        )>(
+            base + 0x114440
+        )(
+            this, &ret
+        );
+        return ret;
     }
 };
 
@@ -427,6 +502,18 @@ public:
         return from<cocos2d::CCDrawNode*>(this, 0x2D70);
     }
 
+    auto m_jumps() {
+        return from<int>(this, 0x2EA4);
+    }
+
+    auto m_attempts() {
+        return from<int>(this, 0x29AC);
+    }
+
+    auto m_isAlive() {
+        return from<bool>(this, 0x2DA0);
+    }
+
     auto m_isDead() {
         return from<bool>(this, 0x2AC0);
     }
@@ -463,9 +550,9 @@ public:
         return from<int>(this, 0x384);
     }
 
-    // auto m_ground() {
-    //     return from<CCSprite*>(this, 0x9D0);
-    // }
+    auto m_hasComplete() {
+        return from<bool>(this, 0x2C28);
+    }
 };
 
 class FLAlertLayerProtocol
@@ -485,15 +572,14 @@ class FLAlertLayer : public cocos2d::CCLayerColor
 public:
     static FLAlertLayer* create(FLAlertLayerProtocol* target, const char* idk, std::string caption, const char* idk2, const char* idk3) {
         auto pRet = reinterpret_cast<FLAlertLayer* (__fastcall*)(FLAlertLayerProtocol*, const char*, std::string, const char*, const char*)>(
-            base + 0x30DA0
+            base + 0x30c40
         )(target, idk, caption, idk2, idk3);
-        __asm add esp, 0x20
         return pRet;
     }
 
     virtual void show() {
         return reinterpret_cast<void(__thiscall*)(FLAlertLayer*)>(
-            base + 0x31CD0
+            base + 0x31ca0
         )(this);
     }
 };
@@ -527,6 +613,18 @@ public:
 
     auto m_nPlayerName() {
         return from<std::string>(this, 0x1D0);
+    }
+
+    auto bgVolume() {
+        return from<float>(this, 0x168);
+    }
+
+    auto sfxVolume() {
+        return from<float>(this, 0x16C);
+    }
+
+    auto lvlTime() {
+        return from<int>(this, 0x320);
     }
 
     bool getGameVariable(const char* key) {

@@ -76,6 +76,9 @@ namespace hooks
     inline int(__thiscall* PlayLayer_destroyPlayer)(PlayLayer*, PlayerObject*, GameObject*);
     inline int __fastcall PlayLayer_destroyPlayer_H(PlayLayer* self, void*, PlayerObject* player, GameObject* obj);
 
+    inline bool(__thiscall* LevelEditorLayer_init)(LevelEditorLayer*, GJGameLevel*, bool);
+    inline bool __fastcall LevelEditorLayer_init_H(LevelEditorLayer* self, void*, GJGameLevel* level, bool unk);
+
     inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
 
     void handleKeyPress(int key);

@@ -38,5 +38,8 @@ void config::load() {
     hacks::slider_limit(hacks_.slider_limit);
     hacks::trail_always_off(hacks_.trail_always_off);
     hacks::trail_always_on(hacks_.trail_always_on);
+    hacks::chamber_of_time(hacks_.chamber_of_time);
+    hacks::ignore_esc(hacks_.ignore_esc);
+    hacks::no_c_mark(hacks_.no_c_mark);
     }
 }

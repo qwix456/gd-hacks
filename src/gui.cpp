@@ -120,12 +120,13 @@ namespace gui
 
     void RenderLevel()
     {
-        ImGui::SetNextWindowSize(ImVec2(288, 124));
         if (ImGui::Begin("Level", NULL)) {
             if (ImGui::Checkbox("Show Layout", &hacks_.show_layout))
                 hacks::layout_mode(hacks_.show_layout);
             ImGui::Checkbox("StartPos Switcher", &hacks_.startpos_switcher);
             ImGui::Checkbox("Use A/D for StartPos Switcher", &hacks_.alt_keys);
+            if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
+                hacks::ignore_esc(hacks_.ignore_esc);
             ImGui::DragFloat("##speed", &hacks_.speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
             ImGui::SameLine();
             ImGui::Checkbox("Speedhack", &hacks_.speedhack);
@@ -149,7 +150,6 @@ namespace gui
 
     void RenderCreator()
     {
-        ImGui::SetNextWindowSize(ImVec2(172, 103));
         if (ImGui::Begin("Creator", NULL)) {
             if (ImGui::Checkbox("Copy Hack", &hacks_.copy_hack))
                 hacks::copy_hack(hacks_.copy_hack);
@@ -157,6 +157,8 @@ namespace gui
                 hacks::verify_hack(hacks_.verify_hack);
             if (ImGui::Checkbox("Custom Object Bypass", &hacks_.custom_object_bypass))
                 hacks::custom_object_bypass(hacks_.custom_object_bypass);
+            if (ImGui::Checkbox("No (C) Mark", &hacks_.no_c_mark))
+                hacks::no_c_mark(hacks_.no_c_mark);
         }
 
         ImGui::End();
@@ -169,6 +171,8 @@ namespace gui
                 hacks::text_bypass(hacks_.text);
             if (ImGui::Checkbox("Treasure Room", &hacks_.treasure))
                 hacks::treasure_room_bypass(hacks_.treasure);
+            if (ImGui::Checkbox("Chamber of Time", &hacks_.chamber_of_time))
+                hacks::chamber_of_time(hacks_.chamber_of_time);
             if (ImGui::Checkbox("Unlock Shops", &hacks_.unlock_shops))
                 hacks::unlock_shops(hacks_.unlock_shops);
             if (ImGui::Checkbox("Vault of Secrets", &hacks_.vault_of_secrets))
@@ -187,7 +191,6 @@ namespace gui
 
     void RenderUtils()
     {
-        ImGui::SetNextWindowSize(ImVec2(135, 126));
         if (ImGui::Begin("Utils", NULL)) {
             if (ImGui::Button("Inject DLL")) {
                 std::string dllPath = OpenDialogDLL();
@@ -227,6 +230,7 @@ namespace gui
             ImGui::Text("Actions: %i", bot::replay.size());
             ImGui::Separator();
             ImGui::Checkbox("Checkpoint Fix", &hacks_.checkpoint_fix);
+            ImGui::Checkbox("Ignore input on playback", &hacks_.ignore_user_input);
             ImGui::Separator();
             if (ImGui::Button("Save")) {
                 bot::save_replay(hacks_.replay_name);

@@ -11,6 +11,11 @@ namespace bot
         float xpos;
         float ypos;
         float rotation;
+        float playerSpeed;
+        double yAccel;
+        double xAccel;
+        bool isHolding;
+        bool isSliding;
         bool buttonPushed;
     };
 

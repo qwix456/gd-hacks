@@ -1,11 +1,14 @@
 #pragma once
 
+#include <string>
+
 struct settings
 {
     // level
     bool show_layout;
     bool startpos_switcher;
     bool alt_keys;
+    bool ignore_esc;
     float speed = 1.0f;
     float fps = 60.0f;
 
@@ -45,10 +48,12 @@ struct settings
     bool copy_hack;
     bool verify_hack;
     bool custom_object_bypass;
+    bool no_c_mark;
 
     // bypass
     bool text;
     bool treasure;
+    bool chamber_of_time;
     bool unlock_shops;
     bool vault_of_secrets;
     bool free_shops;
@@ -64,4 +69,10 @@ struct settings
     // gdbot
     char replay_name[999];
     bool checkpoint_fix;
+    bool ignore_user_input;
+
+    // recorder
+    std::string videoName, videoCodec, videoBitrate, videoExtraArgs, videoExtraAudioArgs;
+    int videoWidth, videoHeight, videFps;
+    bool videoIncludeAudio;
 };
