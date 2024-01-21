@@ -4,6 +4,8 @@ Geometry Dash Cheat Menu
 
 ![Geometry Dash Screenshot 2024 01 20 - 20 53 43 04](https://github.com/qwix456/gd-hacks/assets/104967297/4b5201ba-f254-4544-bba0-6b446ff75d67)
 
+Discord: https://discord.gg/rk9Acs9yXM
+
 ## How to Install and Inject
 
 1. First, download the latest version of gd-hacks by visiting the [releases page](https://github.com/Skyue1/gd-hacks/releases).
