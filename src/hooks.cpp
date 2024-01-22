@@ -1,5 +1,6 @@
 #include "hooks.hpp"
 #include "other/bot.hpp"
+#include "gui.hpp"
 
 extern struct settings hacks_;
 
@@ -60,13 +61,23 @@ namespace hooks {
         GameObject_setGlowColor(self, color);
     }
 
+    void __fastcall GameObject_setGlowOpacity_H(GameObject *self, int, unsigned char opacity)
+    {
+        if (hacks_.show_layout) {
+            GameObject_setGlowOpacity(self, 0);
+            return;
+        }
+
+        GameObject_setGlowOpacity(self, opacity);
+    }
+
     void __fastcall PlayLayer_updateVisibility_H(PlayLayer *self, int, void *dt, void *unk, void *unk_2) {
         if (hacks_.show_layout) {
             if (self->typeTrigger() == 899 || self->typeTrigger() == 1006 || self->typeTrigger() == 1007 || self->typeTrigger() == 2903) {
                 return;
             }
         }
-
+        
         PlayLayer_updateVisibility(self, dt, unk, unk_2);
     }
 
@@ -147,6 +158,7 @@ namespace hooks {
         startPosObjects = {};
         startPosIndex = 0;
         bot::checkpoints.clear();
+        
         GJBaseGameLayer_init(self);
     }
 
@@ -222,23 +234,6 @@ namespace hooks {
         return GJBaseGameLayer_handleButton(self, push, button, is_player1);
     }
 
-    int __fastcall PlayLayer_destroyPlayer_H(PlayLayer *self, void *, PlayerObject *player, GameObject *obj)
-    {
-        int result = 0;
-
-        if (player == self->m_pPlayer1() && hacks_.noclip_p1)
-        {
-            return result;
-        }
-        if (player == self->m_pPlayer2() && hacks_.noclip_p2)
-        {
-            return result;
-        }
-
-        result = PlayLayer_destroyPlayer(self, player, obj);
-        return result;
-    }
-
     bool __fastcall LevelEditorLayer_init_H(LevelEditorLayer *self, void *, GJGameLevel *level, bool unk)
     {
         if (hacks_.discord_rpc) {
@@ -247,6 +242,11 @@ namespace hooks {
                 std::string(level->m_levelName().c_str()) + " by " + std::string(level->m_levelAuthor().c_str()), "", "", true);
         }
         return LevelEditorLayer_init(self, level, unk);
+    }
+
+    bool __fastcall PlayLayer_init_H(PlayLayer *self, int edx, GJGameLevel *m_level, bool unk, bool unk_2)
+    {
+        return PlayLayer_init(self, m_level, unk, unk_2);
     }
 
     bool __fastcall LevelSelectLayer_init_H(void *self, void* unk, int lvl)
@@ -265,6 +265,8 @@ namespace hooks {
     }
 
     void __fastcall GJBaseGameLayer_update_H(PlayLayer *self, int edx, float dt) {
+        if (hacks_.show_layout)
+            self->m_background()->setColor({40, 125, 255});
         if (hacks_.rainbow_icons) {
             float r, g, b;
             ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks_.rainbow_speed, hacks_.pastel, 1, r, g, b);
@@ -297,6 +299,9 @@ namespace hooks {
         }
 
         GJBaseGameLayer_update(self, dt);
+
+        if (hacks_.show_layout)
+            self->m_background()->setColor({40, 125, 255});
     }
 
     void __fastcall PlayLayer_destructor_H(PlayLayer *self, void *unk) {
@@ -418,8 +423,8 @@ namespace hooks {
         MH_CreateHook((void*)(base + 0x2EB480), PlayLayer_onQuit_H, (void**)&PlayLayer_onQuit);
         MH_CreateHook((void*)(base + 0x2E76E0), PlayLayer_createCheckpoint_H, (void**)&PlayLayer_createCheckpoint);
         MH_CreateHook((void*)(base + 0x2E8D70), PlayLayer_removeCheckpoint_H, (void**)&PlayLayer_removeCheckpoint);
-        MH_CreateHook((void*)(base + 0x2E6730), PlayLayer_destroyPlayer_H, (void**)&PlayLayer_destroyPlayer);
         MH_CreateHook((void*)(base + 0x239A70), LevelEditorLayer_init_H, (void**)&LevelEditorLayer_init);
+        MH_CreateHook((void*)(base + 0x2DC4A0), PlayLayer_init_H, (void**)&PlayLayer_init);
         GJBaseGameLayer_setStartPosObject = (decltype(GJBaseGameLayer_setStartPosObject))(base + 0x199E90);
         MH_CreateHook((void*)(GetProcAddress((HMODULE)(cocos_base), "?update@CCScheduler@cocos2d@@UAEXM@Z")), CCScheduler_update_H, (void**)(&CCScheduler_update));
     }

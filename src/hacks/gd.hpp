@@ -4,7 +4,7 @@
 
 using namespace cocos2d;
 
-static const auto base = (uintptr_t)(GetModuleHandleA(0));
+static auto base = (uintptr_t)(GetModuleHandleA(0));
 static auto cocos_base = (uintptr_t)(GetModuleHandleA("libcocos2d.dll"));
 
 #define OFFSET(type, address) *(reinterpret_cast<type*>(address));
@@ -23,7 +23,7 @@ class GameObject : public CCSpritePlus
 {
 public:
     auto m_glow() {
-        return from<CCSprite*>(this, 0x3B4);
+        return from<CCSprite*>(this, 0x2B00);
     }
 
     auto m_objectType() {
@@ -502,6 +502,22 @@ public:
         return from<cocos2d::CCDrawNode*>(this, 0x2D70);
     }
 
+    auto m_background() {
+        return from<cocos2d::CCSprite*>(this, 0x9C4);
+    }
+
+    auto m_ground() {
+        return from<cocos2d::CCSprite*>(this, 0x0F8);
+    }
+
+     auto m_object() {
+        return from<GameObject*>(this, 0x2AEC);
+    }
+
+    auto m_isPracticeMode() {
+        return from<bool>(this, 0x2A7C);
+    }
+
     auto m_jumps() {
         return from<int>(this, 0x2EA4);
     }
@@ -526,16 +542,20 @@ public:
         return from<PlayerObject*>(this, 0x878);
     }
 
-    // auto m_isPracticeMode() {
-    //     return from<bool>(this, 0x2A7c);
-    // }
-
     auto m_pPlayer2() {
         return from<PlayerObject*>(this, 0x87C);
     }
 
     auto m_level() {
         return from<GJGameLevel*>(this, 0x5E0);
+    }
+
+    auto m_idk1() {
+        return from<int>(this, 0x238);
+    }
+
+    auto m_toggleDraw() {
+        return from<bool>(this, 0x2D78);
     }
 
     auto m_time() {

@@ -10,6 +10,31 @@ namespace utils
         VirtualProtect((void*)(address), bytes.size(), old_prot, &old_prot);
     }
 
+    bool WriteByte(uintptr_t address, std::string bytes)
+    {
+        std::vector<unsigned char> byteVec;
+        std::stringstream byteStream(bytes);
+        std::string byteStr;
+
+        while (getline(byteStream, byteStr, ' '))
+        {
+            unsigned int byte = std::stoul(byteStr, nullptr, 16);
+            byteVec.push_back(static_cast<unsigned char>(byte));
+        }
+
+        DWORD oldProtect;
+        if (VirtualProtect(reinterpret_cast<void *>(address), byteVec.size(), PAGE_EXECUTE_READWRITE, &oldProtect))
+        {
+            memcpy(reinterpret_cast<void *>(address), byteVec.data(), byteVec.size());
+            VirtualProtect(reinterpret_cast<void *>(address), byteVec.size(), oldProtect, &oldProtect);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     std::string OpenDialogDLL()
     {
         OPENFILENAME ofn;

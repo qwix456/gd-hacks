@@ -3,7 +3,7 @@
 #include "../hacks/gd.hpp"
 #include "../hooks.hpp"
 
-extern struct settings hacks_;
+struct settings hacks_;
 
 namespace bot {
     void save_replay(std::string path)

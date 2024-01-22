@@ -1,7 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "includes.hpp"
 #include "hacks/gd.hpp"
-#include "hacks/hacks.hpp"
 #include "hacks/bools.hpp"
 #include "hacks/rich.hpp"
 #include "gui.hpp"
@@ -22,6 +21,9 @@ namespace hooks
     inline void(__thiscall* GameObject_setGlowColor)(GameObject*, _ccColor3B const&);
     inline void __fastcall GameObject_setGlowColor_H(GameObject* self, int, _ccColor3B const& color);
 
+    inline void(__thiscall* GameObject_setGlowOpacity)(GameObject*, unsigned char);
+    inline void __fastcall GameObject_setGlowOpacity_H(GameObject* self, int, unsigned char opacity);
+
     inline void(__thiscall* GameObject_setObjectColor)(GameObject*, _ccColor3B const&);
     inline void __fastcall GameObject_setObjectColor_H(GameObject* self, int, _ccColor3B const& color);
 
@@ -33,9 +35,6 @@ namespace hooks
 
     inline void(__thiscall* GJBaseGameLayer_init)(PlayLayer*);
     inline void __fastcall GJBaseGameLayer_init_H(PlayLayer* self, void* unk);
-
-    inline bool(__thiscall* PlayLayer_init)(PlayLayer*, GJGameLevel*, bool, bool);
-    inline bool __fastcall PlayLayer_init_H(PlayLayer* self, int edx, GJGameLevel* m_level, bool unk, bool unk_2);
 
     inline void(__thiscall* StartPosObject_init)(void*);
     inline void __fastcall StartPosObject_init_H(void* self, void* unk);
@@ -73,11 +72,11 @@ namespace hooks
     inline bool(__thiscall* GJBaseGameLayer_handleButton)(PlayLayer*, int, int, BOOL);
     inline bool __fastcall GJBaseGameLayer_handleButton_H(PlayLayer* self, uintptr_t, int push, int button, BOOL is_player1);
 
-    inline int(__thiscall* PlayLayer_destroyPlayer)(PlayLayer*, PlayerObject*, GameObject*);
-    inline int __fastcall PlayLayer_destroyPlayer_H(PlayLayer* self, void*, PlayerObject* player, GameObject* obj);
-
     inline bool(__thiscall* LevelEditorLayer_init)(LevelEditorLayer*, GJGameLevel*, bool);
     inline bool __fastcall LevelEditorLayer_init_H(LevelEditorLayer* self, void*, GJGameLevel* level, bool unk);
+
+    inline bool(__thiscall* PlayLayer_init)(PlayLayer*, GJGameLevel*, bool, bool);
+    inline bool __fastcall PlayLayer_init_H(PlayLayer* self, int edx, GJGameLevel* m_level, bool unk, bool unk_2);
 
     inline void(__thiscall* GJBaseGameLayer_setStartPosObject)(void*, void*) = nullptr;
 

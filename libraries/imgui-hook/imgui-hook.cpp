@@ -79,16 +79,16 @@ namespace ImGuiHook {
 			CCEGLView_pollEvents(self);
 		}
 
-	void(__thiscall* CCEGLView_toggleFullScreen)(CCEGLView*, bool) = nullptr;
+	void(__thiscall* CCEGLView_toggleFullScreen)(CCEGLView*, bool, bool) = nullptr;
 
-    void __fastcall CCEGLView_toggleFullScreen_H(CCEGLView* self, void*, bool toggle) {
+    void __fastcall CCEGLView_toggleFullScreen_H(CCEGLView* self, void*, bool unk, bool toggle) {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplWin32_Shutdown();
         ImGui::DestroyContext();
 
         g_inited = false;
 
-        CCEGLView_toggleFullScreen(self, toggle);
+        CCEGLView_toggleFullScreen(self, unk, toggle);
     }
 
     void(__thiscall* AppDelegate_applicationWillEnterForeground)(void*) = nullptr;
@@ -104,7 +104,7 @@ namespace ImGuiHook {
                  reinterpret_cast<void**>(&CCEGLView_swapBuffers));
         hookFunc(GetProcAddress(cocosBase, "?pollEvents@CCEGLView@cocos2d@@QAEXXZ"), CCEGLView_pollEvents_H,
                  reinterpret_cast<void**>(&CCEGLView_pollEvents));
-        hookFunc(GetProcAddress(cocosBase, "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N@Z"), CCEGLView_toggleFullScreen_H,
+        hookFunc(GetProcAddress(cocosBase, "?toggleFullScreen@CCEGLView@cocos2d@@QAEX_N0@Z"), CCEGLView_toggleFullScreen_H,
                  reinterpret_cast<void**>(&CCEGLView_toggleFullScreen));
         hookFunc(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandleA(0)) + 0x5B530),
                  reinterpret_cast<void*>(&AppDelegate_applicationWillEnterForeground_H),

@@ -1,6 +1,6 @@
 #include "hooks.hpp"
-#include "config.hpp"
 #include "gui.hpp"
+#include "other/reader.hpp"
 #include <filesystem>
 
 DWORD WINAPI MainThread(LPVOID lpParam) {
@@ -11,23 +11,30 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     if (!std::filesystem::exists("gdhacks/macros"))
         std::filesystem::create_directory("gdhacks/macros");
 
-    config::load();
-    LoadDll();
-    ImGuiHook::setRenderFunction(gui::RenderUI);
-    ImGuiHook::setInitFunction(gui::ApplyColor);
-    ImGuiHook::setKeyPressHandler([](int key) {
-            if (key == VK_TAB) {
-                gui::ShowUI();
-            }
-            hooks::handleKeyPress(key);
-        });
+    utils::LoadDll();
     if (MH_Initialize() == MH_OK) {
+        L_SUCCESS("MinHook initialization successful");
         ImGuiHook::setupHooks([](void* target, void* hook, void** trampoline) {
             MH_CreateHook(target, hook, trampoline);
         });
         hooks::init();
+        hooks::console();
+        reader::load();
+
+        ImGuiHook::setRenderFunction(gui::RenderUI);
+        ImGuiHook::setInitFunction(gui::ApplyColor);
+        ImGuiHook::setKeyPressHandler([](int key) {
+                if (key == VK_TAB) {
+                    gui::ShowUI();
+                }
+                hooks::handleKeyPress(key);
+            });
         MH_EnableHook(MH_ALL_HOOKS);
+    } else {
+        L_ERROR("MinHook initialization failed");
+        return 0;
     }
+
     return S_OK;
 }
 
@@ -43,7 +50,6 @@ DWORD WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved) {
         for (HMODULE module : Dlls) {
             FreeLibrary(module);
         }
-        config::save();
     }
 
 	return TRUE;

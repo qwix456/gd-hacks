@@ -2,6 +2,7 @@
 #include "hooks.hpp"
 #include "hacks/font.h"
 #include "other/bot.hpp"
+#include "other/reader.hpp"
 
 namespace gui
 {
@@ -83,13 +84,23 @@ namespace gui
         style.WindowTitleAlign                  = ImVec2(0.5f,0.5f);
     }
 
+    void layout_mode(bool active)
+    {
+        if (active) {
+            utils::WriteBytes(base + 0x13EFA1, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else {
+            utils::WriteBytes(base + 0x13EFA1, {0x88, 0x87, 0x62, 0x04, 0x00, 0x00});
+        }
+    }
+
     void RenderInfo()
     {
         ImGui::SetNextWindowPos(ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1);
         ImGui::Begin("Info", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBringToFrontOnFocus);
         
-        if (hooks::pl != nullptr) {
+        if (hooks::pl) {
             ImGui::PushStyleColor(ImGuiCol_Text, ImColor(255, 255, 255, 200).Value);
             bool isRobTopLvl = hooks::pl->m_level()->m_levelID() < 5004 && hooks::pl->m_level()->m_levelID() > 0;
 
@@ -118,210 +129,164 @@ namespace gui
         ImGui::PopStyleVar();
     }
 
-    void RenderLevel()
-    {
-        if (ImGui::Begin("Level", NULL)) {
-            if (ImGui::Checkbox("Show Layout", &hacks_.show_layout))
-                hacks::layout_mode(hacks_.show_layout);
-            ImGui::Checkbox("StartPos Switcher", &hacks_.startpos_switcher);
-            ImGui::Checkbox("Use A/D for StartPos Switcher", &hacks_.alt_keys);
-            if (ImGui::Checkbox("Ignore ESC", &hacks_.ignore_esc))
-                hacks::ignore_esc(hacks_.ignore_esc);
-            ImGui::DragFloat("##speed", &hacks_.speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
-            ImGui::SameLine();
-            ImGui::Checkbox("Speedhack", &hacks_.speedhack);
+    void render() {
+        if (!m_visibleGui)
+            return;
+
+        if (reader::data.empty()) {
+            hooks::print("No items in data.");
+            return;
         }
 
-        ImGui::End();
-    }
-    void RenderPlayer()
-    {
-        if (ImGui::Begin("Player", NULL)) {
-            ImGui::Checkbox("Noclip For P1", &hacks_.noclip_p1);
-            ImGui::Checkbox("Noclip For P2", &hacks_.noclip_p2);
-            if (ImGui::Checkbox("Unlock All", &hacks_.unlock_all))
-                hacks::unlock_all(hacks_.unlock_all);
-            if (ImGui::Checkbox("Unlock All Levels", &hacks_.unlock_all_levels))
-                hacks::unlock_all_levels(hacks_.unlock_all_levels);
-        }
+        for (auto& item : reader::data.items()) {
+            ImGui::Begin(item.key().c_str());
 
-        ImGui::End();
-    }
+            json& hack = item.value();
+            for (size_t i = 0; i < hack.size(); i++) {
+                json& item_hack = hack[i];
+                bool enabled = item_hack["enabled"];
 
-    void RenderCreator()
-    {
-        if (ImGui::Begin("Creator", NULL)) {
-            if (ImGui::Checkbox("Copy Hack", &hacks_.copy_hack))
-                hacks::copy_hack(hacks_.copy_hack);
-            if (ImGui::Checkbox("Verify Hack", &hacks_.verify_hack))
-                hacks::verify_hack(hacks_.verify_hack);
-            if (ImGui::Checkbox("Custom Object Bypass", &hacks_.custom_object_bypass))
-                hacks::custom_object_bypass(hacks_.custom_object_bypass);
-            if (ImGui::Checkbox("No (C) Mark", &hacks_.no_c_mark))
-                hacks::no_c_mark(hacks_.no_c_mark);
-        }
+                if (ImGui::Checkbox(item_hack["name"].get<std::string>().c_str(), &enabled)) {
+                    item_hack["enabled"] = enabled;
 
-        ImGui::End();
-    }
+                    json opcodes = item_hack["opcodes"];
+                    for (auto& opcode : opcodes) {
+                        std::string address_str = opcode["address"];
+                        std::string byte_str = enabled ? opcode["on"] : opcode["off"];
 
-    void RenderBypass()
-    {
-        if (ImGui::Begin("Bypass", NULL)) {
-            if (ImGui::Checkbox("Text Bypass", &hacks_.text))
-                hacks::text_bypass(hacks_.text);
-            if (ImGui::Checkbox("Treasure Room", &hacks_.treasure))
-                hacks::treasure_room_bypass(hacks_.treasure);
-            if (ImGui::Checkbox("Chamber of Time", &hacks_.chamber_of_time))
-                hacks::chamber_of_time(hacks_.chamber_of_time);
-            if (ImGui::Checkbox("Unlock Shops", &hacks_.unlock_shops))
-                hacks::unlock_shops(hacks_.unlock_shops);
-            if (ImGui::Checkbox("Vault of Secrets", &hacks_.vault_of_secrets))
-                hacks::vault_of_secrets(hacks_.vault_of_secrets);
-            if (ImGui::Checkbox("Free Shops", &hacks_.free_shops))
-                hacks::free_shops(hacks_.free_shops);
-            if (ImGui::Checkbox("Slider Limit", &hacks_.slider_limit))
-                hacks::slider_limit(hacks_.slider_limit);
-            ImGui::DragFloat("##fpsvalue", &hacks_.fps, 0.01f, 0, FLT_MAX, "FPS %.2f");
-            ImGui::SameLine();
-            ImGui::Checkbox("Bypass", &hacks_.fps_bypass);
-        }
+                        uintptr_t address;
+                        sscanf_s(address_str.c_str(), "%x", &address);
 
-        ImGui::End();
-    }
+                        DWORD base2 = (DWORD)GetModuleHandleA(0);
+                        if (!opcode["lib"].is_null()) {
+                            base2 = (DWORD)GetModuleHandleA(std::string(opcode["lib"]).c_str());
+                        }
 
-    void RenderUtils()
-    {
-        if (ImGui::Begin("Utils", NULL)) {
-            if (ImGui::Button("Inject DLL")) {
-                std::string dllPath = OpenDialogDLL();
-                if (dllPath != "false") {
-                    LoadLibraryA(dllPath.c_str());
-                    loadedDlls++;
-                }
-            }
-            if (ImGui::Button("Uncomplete Level"))
-            {
-                if (hooks::pl)
-                {
-                    hooks::pl->m_level()->setZeroJumps();
-                    hooks::pl->m_level()->setZeroAtt();
-                    hooks::pl->m_level()->setZeroNormal();
-                    hooks::pl->m_level()->setPractice();
-                    hooks::pl->m_level()->setZeroLead();
+                        utils::WriteByte(base2 + address, byte_str);
+                    }
+
+                    std::ofstream out("gdhacks/hacks.json");
+                    out << reader::data.dump(4);
+                    out.close();
                 }
             }
 
-            ImGui::Checkbox("Discord RPC", &hacks_.discord_rpc);
-            ImGui::Text("DLLs loaded: %d", loadedDlls);
-        }
-
-        ImGui::End();
-    }
-
-    void RenderGDBot()
-    {
-        if (ImGui::Begin("GDBot")) {
-            ImGui::Combo("Mode", &bot::m_mode, "Disabled\0Record\0Playback");
-            ImGui::PushItemWidth(120);
-            ImGui::InputText("Replay Name", hacks_.replay_name, ImGuiInputTextFlags_EnterReturnsTrue);
-            ImGui::PopItemWidth();
-            ImGui::Separator();
-            ImGui::Text("Frame: %i", bot::get_frame(GameManager::sharedState()->m_pPlayLayer()));
-            ImGui::Text("Actions: %i", bot::replay.size());
-            ImGui::Separator();
-            ImGui::Checkbox("Checkpoint Fix", &hacks_.checkpoint_fix);
-            ImGui::Checkbox("Ignore input on playback", &hacks_.ignore_user_input);
-            ImGui::Separator();
-            if (ImGui::Button("Save")) {
-                bot::save_replay(hacks_.replay_name);
+            if (item.key() == "Bypass") {
+                ImGui::DragFloat("##fpsvalue", &hacks_.fps, 0.01f, 0, FLT_MAX, "FPS %.2f");
+                ImGui::SameLine();
+                ImGui::Checkbox("Bypass", &hacks_.fps_bypass);
             }
-            ImGui::SameLine();
-            if (ImGui::Button("Load")) {
-                bot::load_replay(hacks_.replay_name);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Clear")) {
-                bot::replay.clear();
-            }
-        }
-        ImGui::End();
-    }
 
-    void RenderVisuals()
-    {
-        if (ImGui::Begin("Visuals")) {
-            if (ImGui::Checkbox("No Transition", &hacks_.no_transition))
-                hacks::no_transition(hacks_.no_transition);
-            if (ImGui::Checkbox("No Shaders", &hacks_.no_shaders))
-                hacks::no_shaders(hacks_.no_shaders);
-            if (ImGui::Checkbox("No Death Effect", &hacks_.no_death_effect))
-                hacks::no_death_effect(hacks_.no_death_effect);
-            if (ImGui::Checkbox("No Trail", &hacks_.no_trail))
-                hacks::no_trail(hacks_.no_trail);
-            if (ImGui::Checkbox("Trail Always Off", &hacks_.trail_always_off))
-                hacks::trail_always_off(hacks_.trail_always_off);
-            if (ImGui::Checkbox("Trail Always On", &hacks_.trail_always_on))
-                hacks::trail_always_on(hacks_.trail_always_on);
-            if (ImGui::Checkbox("No Wave Trail", &hacks_.no_wave_trail))
-                hacks::no_wave_trail(hacks_.no_wave_trail);
-            if (ImGui::Checkbox("No Camera Move", &hacks_.no_camera_move))
-                hacks::no_camera_move(hacks_.no_camera_move);
-            if (ImGui::Checkbox("No Camera Zoom", &hacks_.no_camera_zoom))
-                hacks::no_camera_zoom(hacks_.no_camera_zoom);
-            if (ImGui::Checkbox("No Particles", &hacks_.no_particles))
-                hacks::no_particles(hacks_.no_particles);
-            ImGui::Checkbox("Rainbow Icons", &hacks_.rainbow_icons);
-            ImGui::SameLine();
-            if (ImGui::ArrowButton("rainbow", ImGuiDir_Right))
-                ImGui::OpenPopup("Rainbow Icons Settings");
-            if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL)) {
-                ImGui::Checkbox("Rainbow Color 1", &hacks_.rainbow_color_1);
-                ImGui::Checkbox("Rainbow Color 2", &hacks_.rainbow_color_2);
-                ImGui::Checkbox("Rainbow Wave Trail", &hacks_.rainbow_wave_trail);
-                ImGui::PushItemWidth(100);
-                ImGui::InputFloat("Rainbow Speed Interval", &hacks_.rainbow_speed);
-                if (ImGui::InputFloat("Rainbow Pastel Amount", &hacks_.pastel)) {
-                    hacks_.pastel = hacks_.pastel <= 0.1f ? 0.1f : hacks_.pastel > 1.0f ? 1.0f : hacks_.pastel;
-                }
+            if (item.key() == "GDBot") {
+                  ImGui::Combo("Mode", &bot::m_mode, "Disabled\0Record\0Playback");
+                ImGui::PushItemWidth(120);
+                ImGui::InputText("Replay Name", hacks_.replay_name, ImGuiInputTextFlags_EnterReturnsTrue);
                 ImGui::PopItemWidth();
-                if (ImGui::Button("Close")) {
-                    ImGui::CloseCurrentPopup();
+                ImGui::Separator();
+                ImGui::Text("Frame: %i", bot::get_frame(GameManager::sharedState()->m_pPlayLayer()));
+                ImGui::Text("Actions: %i", bot::replay.size());
+                ImGui::Separator();
+                ImGui::Checkbox("Checkpoint Fix", &hacks_.checkpoint_fix);
+                ImGui::Checkbox("Ignore input on playback", &hacks_.ignore_user_input);
+                ImGui::Separator();
+                if (ImGui::Button("Save")) {
+                    bot::save_replay(hacks_.replay_name);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Load")) {
+                    bot::load_replay(hacks_.replay_name);
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Clear")) {
+                    bot::replay.clear();
                 }
             }
-            ImGui::Checkbox("Labels", &hacks_.labels);
-            ImGui::SameLine();
-            if (ImGui::ArrowButton("labels", ImGuiDir_Right))
-                ImGui::OpenPopup("Labels Settings");
-            if (ImGui::BeginPopupModal("Labels Settings", NULL)) {
-                ImGui::Checkbox("Level Name", &hacks_.level_name);
-                ImGui::Checkbox("Creator", &hacks_.author);
-                ImGui::Checkbox("LevelID", &hacks_.level_id);
-                ImGui::Checkbox("Attempts", &hacks_.total_attempts);
-                ImGui::Checkbox("Jumps", &hacks_.total_jumps);
-                ImGui::Checkbox("Normal Percent", &hacks_.normal_percent);
-                ImGui::Checkbox("Practice Percent", &hacks_.practice_percent);
-                if (ImGui::Button("Close")) {
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-        }
 
-        ImGui::End();
+            if (item.key() == "Visuals") {
+                ImGui::Checkbox("Rainbow Icons", &hacks_.rainbow_icons);
+                ImGui::SameLine();
+                if (ImGui::ArrowButton("rainbow", ImGuiDir_Right))
+                    ImGui::OpenPopup("Rainbow Icons Settings");
+                if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL)) {
+                    ImGui::Checkbox("Rainbow Color 1", &hacks_.rainbow_color_1);
+                    ImGui::Checkbox("Rainbow Color 2", &hacks_.rainbow_color_2);
+                    ImGui::Checkbox("Rainbow Wave Trail", &hacks_.rainbow_wave_trail);
+                    ImGui::PushItemWidth(100);
+                    ImGui::InputFloat("Rainbow Speed Interval", &hacks_.rainbow_speed);
+                    if (ImGui::InputFloat("Rainbow Pastel Amount", &hacks_.pastel)) {
+                        hacks_.pastel = hacks_.pastel <= 0.1f ? 0.1f : hacks_.pastel > 1.0f ? 1.0f : hacks_.pastel;
+                    }
+                    ImGui::PopItemWidth();
+                    if (ImGui::Button("Close")) {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();
+                }
+
+                ImGui::Checkbox("Labels", &hacks_.labels);
+                ImGui::SameLine();
+                if (ImGui::ArrowButton("labels", ImGuiDir_Right))
+                    ImGui::OpenPopup("Labels Settings");
+                if (ImGui::BeginPopupModal("Labels Settings", NULL)) {
+                    ImGui::Checkbox("Level Name", &hacks_.level_name);
+                    ImGui::Checkbox("Creator", &hacks_.author);
+                    ImGui::Checkbox("LevelID", &hacks_.level_id);
+                    ImGui::Checkbox("Attempts", &hacks_.total_attempts);
+                    ImGui::Checkbox("Jumps", &hacks_.total_jumps);
+                    ImGui::Checkbox("Normal Percent", &hacks_.normal_percent);
+                    ImGui::Checkbox("Practice Percent", &hacks_.practice_percent);
+                    if (ImGui::Button("Close")) {
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::EndPopup();  
+                }
+            }
+
+            if (item.key() == "Utils") {
+                if (ImGui::Button("Inject DLL")) {
+                    std::string dllPath = utils::OpenDialogDLL();
+                    if (dllPath != "false") {
+                        LoadLibraryA(dllPath.c_str());
+                        loadedDlls++;
+                    }
+                }
+                if (ImGui::Button("Uncomplete Level"))
+                {
+                    if (hooks::pl)
+                    {
+                        hooks::pl->m_level()->setZeroJumps();
+                        hooks::pl->m_level()->setZeroAtt();
+                        hooks::pl->m_level()->setZeroNormal();
+                        hooks::pl->m_level()->setPractice();
+                        hooks::pl->m_level()->setZeroLead();
+                    }
+                }
+
+                ImGui::Checkbox("Discord RPC", &hacks_.discord_rpc);
+                ImGui::Text("DLLs loaded: %d", loadedDlls);
+            }
+
+            if (item.key() == "Level") {
+                if (ImGui::Checkbox("Show Layout", &hacks_.show_layout))
+                    layout_mode(hacks_.show_layout);
+                ImGui::Checkbox("StartPos Switcher", &hacks_.startpos_switcher);
+                ImGui::Checkbox("Use A/D for StartPos Switcher", &hacks_.alt_keys);
+                ImGui::DragFloat("##speed", &hacks_.speed, 0.01f, 0, FLT_MAX, "Speed %.2f");
+                ImGui::SameLine();
+                ImGui::Checkbox("Speedhack", &hacks_.speedhack);
+            }
+
+            ImGui::End();
+        }
     }
+
+
 
     void RenderUI()
     {
         RenderInfo();
         if (m_visibleGui)
-        {
-            RenderLevel();
-            RenderPlayer();
-            RenderCreator();
-            RenderBypass();
-            RenderUtils();
-            RenderGDBot();
-            RenderVisuals();
-        }
+            render(); // dont ask
     }
 
     void ShowUI()

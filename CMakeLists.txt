@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(PROJECT gd-hacks)
+set(PROJECT GDHacks)
 project(${PROJECT})
 
 
@@ -20,6 +20,7 @@ target_include_directories(${PROJECT} PRIVATE
 	libraries/cocos-headers/cocos2dx/platform/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32
 	libraries/cocos-headers/cocos2dx/platform/third_party/win32/OGLES
+  libraries/cocos-headers/cocos2dx/platform/third_party/win32/curl
   libraries/discord-rpc/include
   libraries
 )
