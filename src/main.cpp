@@ -18,7 +18,6 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
             MH_CreateHook(target, hook, trampoline);
         });
         hooks::init();
-        hooks::console();
         reader::load();
 
         ImGuiHook::setRenderFunction(gui::RenderUI);
